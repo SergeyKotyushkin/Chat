@@ -1,0 +1,41 @@
+﻿@model Chat.Web.Models.LoginViewModel
+
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <title>Login</title>
+    <link href="~/Content/Css/common.css" rel="stylesheet" />
+    <link href="~/Content/Css/login.css" rel="stylesheet"/>
+    <link href="~/Content/Css/bootstrap.min.css" rel="stylesheet"/>
+    
+    <script src="~/Scripts/jquery-1.9.1.min.js"></script>
+    <script src="~/Scripts/bootstrap.min.js"></script>
+</head>
+<body>
+@using (Html.BeginForm("Index", "Login", FormMethod.Post))
+{
+    <div class="panel">
+        <div class="h4">Welcome</div>
+        <span>Login</span>
+        <input class="form-control" type="text" name="login"/>
+        <span>Password</span>
+        <input class="form-control" type="password" name="password"/>
+        <div class="hor-center-parent">
+            <button class="btn btn-default" type="submit" value="submit">Go</button>
+        </div>
+    </div>
+
+    if (Model.HasError)
+    {
+        <div class="alert alert-danger">
+            @Model.ErrorMessage
+        </div>
+    }
+}
+</body>
+</html>
