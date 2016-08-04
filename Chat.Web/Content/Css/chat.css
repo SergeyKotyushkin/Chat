@@ -56,18 +56,12 @@ div.alert {
     width: 100%;
 }
 
-#chats-panel {
+#chats-panel, #users-panel, #new-chat-panel {
     border: 1px solid #b1b1b1;
 }
 
-#chats-panel .panel-body {
-    height: 150px;
-}
-
-#users-panel .panel-body {
-    height: 150px;
-}
-
+#chats-panel .panel-body,
+#users-panel .panel-body,
 #new-chat-panel .panel-body {
     height: 150px;
 }
