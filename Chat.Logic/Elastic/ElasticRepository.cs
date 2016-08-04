@@ -42,6 +42,24 @@ namespace Chat.Logic.Elastic
             }
         }
 
+        public ElasticIndexResponse ExecuteCreateOrUpdateRequest<T>(T @object, string esType) where T : class, IGuidedEntity
+        {
+            try
+            {
+                var client = GetElasticClient();
+                var response = client.Index(@object, i => i.Index(EsIndex).Type(esType).Id(@object.Guid));
+
+                return response.ApiCall.Success
+                    ? ElasticIndexResponse.SuccessResponse(response)
+                    : ElasticIndexResponse.FailResponse("Request ended with error. " +
+                                                        response.ApiCall.OriginalException.Message);
+            }
+            catch
+            {
+                return ElasticIndexResponse.FailResponse("Server error.");
+            }
+        }
+
         #endregion
 
         #region Public Static Methods

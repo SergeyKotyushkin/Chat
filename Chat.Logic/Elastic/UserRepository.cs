@@ -49,5 +49,29 @@ namespace Chat.Logic.Elastic
 
             return _entityRepository.GetEntityIfOnlyOneEntityInElasticResponse(response);
         }
+
+        public ElasticResult<User> CheckLogin(string login)
+        {
+            var searchDescriptor = new SearchDescriptor<User>().Query(
+                q =>
+                    q.Bool(
+                        b =>
+                            b.Must(
+                                m =>
+                                    m.Term(fields => fields.Field(f => f.Login).Value(login)))))
+                .Index(_elasticRepository.EsIndex)
+                .Type(EsType);
+
+            var response = _elasticRepository.ExecuteSearchRequest(searchDescriptor);
+
+            return _entityRepository.GetEntityIfOnlyOneEntityInElasticResponse(response);
+        }
+
+        public ElasticResult<User> Add(string login, string password)
+        {
+            var user = new User(login, password);
+
+            return _entityRepository.Add(EsType, user);
+        }
     }
 }

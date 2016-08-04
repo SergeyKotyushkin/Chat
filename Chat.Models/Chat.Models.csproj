@@ -51,6 +51,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ElasticIndexResponse.cs" />
     <Compile Include="ElasticResponse.cs" />
     <Compile Include="ElasticResult.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

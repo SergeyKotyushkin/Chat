@@ -25,29 +25,25 @@ namespace Chat.Web.Controllers
             if (CheckCookies(Request.Cookies))
                 return RedirectToAction("Index", "Chat");
 
-            Response.Cookies.Remove(CookieName);
+            if (Request.Cookies[CookieName] != null)
+                Response.Cookies.Add(new HttpCookie(CookieName) { Expires = DateTime.Now.AddDays(-1) });
+
             return View(new LoginViewModel());
         }
 
         [HttpPost]
-        public ActionResult Index(string login, string password)
+        public ActionResult Index(LoginViewModel model)
         {
-            if (login.Trim().Equals(string.Empty) ||
-                password.Trim().Equals(string.Empty))
-                return View(new LoginViewModel
-                {
-                    HasError = true, 
-                    ErrorMessage = "The 'Login' and 'Password' fields must be are entered"
-                });
+            if (string.IsNullOrWhiteSpace(model.Login) ||
+                string.IsNullOrWhiteSpace(model.Password))
+                return View(LoginViewModel.ErrorMessage("You should fill all the fields"));
 
+            var login = model.Login.Trim();
+            var password = model.Password.Trim();
 
             var loginResult = Login(login, password);
             if (!loginResult.Item1)
-                return View(new LoginViewModel
-                {
-                    HasError = true,
-                    ErrorMessage = "The user with these credentials is not exist"
-                });
+                return View(LoginViewModel.ErrorMessage("A user with these credentials does not exist"));
 
             Response.Cookies.Set(new HttpCookie(CookieName, loginResult.Item2));
             return RedirectToAction("Index", "Chat");

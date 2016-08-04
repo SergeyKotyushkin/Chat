@@ -1,25 +1,27 @@
 ﻿namespace Chat.Web.Models
 {
-    public class LoginViewModel
+    public class RegisterViewModel
     {
         public string Login { get; set; }
 
         public string Password { get; set; }
 
+        public string PasswordRepeat { get; set; }
+
         public MessageViewModel MessageViewModel { get; set; }
 
 
-        public static LoginViewModel SuccessMessage(string message)
+        public static RegisterViewModel SuccessMessage(string message)
         {
-            return new LoginViewModel
+            return new RegisterViewModel
             {
                 MessageViewModel = MessageViewModel.SuccessMessage(message)
             };
         }
 
-        public static LoginViewModel ErrorMessage(string message)
+        public static RegisterViewModel ErrorMessage(string message)
         {
-            return new LoginViewModel
+            return new RegisterViewModel
             {
                 MessageViewModel = MessageViewModel.ErrorMessage(message)
             };

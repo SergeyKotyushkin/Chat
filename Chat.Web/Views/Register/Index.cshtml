@@ -1,4 +1,4 @@
-﻿@model Chat.Web.Models.LoginViewModel
+﻿@model Chat.Web.Models.RegisterViewModel
 
 @{
     Layout = null;
@@ -8,30 +8,30 @@
 
 <html>
 <head>
-    <title>Login</title>
+    <title>Register</title>
     <link href="~/Content/Css/common.css" rel="stylesheet" />
-    <link href="~/Content/Css/login.css" rel="stylesheet"/>
-    <link href="~/Content/Css/bootstrap.min.css" rel="stylesheet"/>
-    
+    <link href="~/Content/Css/register.css" rel="stylesheet" />
+    <link href="~/Content/Css/bootstrap.min.css" rel="stylesheet" />
+
     <script src="~/Scripts/jquery-1.9.1.min.js"></script>
     <script src="~/Scripts/bootstrap.min.js"></script>
 </head>
 <body>
-@using (Html.BeginForm("Index", "Login", FormMethod.Post))
+<div>
+@using (Html.BeginForm("Index", "Register", FormMethod.Post))
 {
     <div class="panel">
-        <div class="h4">Welcome</div>
+        <div class="h4">Fill Form</div>
         <span>Login</span>
-        @Html.TextBoxFor(m => m.Login, new { @class = "form-control" })
+        @Html.TextBoxFor(m => m.Login, new { @class = "form-control"})
         <span>Password</span>
         @Html.PasswordFor(m => m.Password, new { @class = "form-control" })
+        <span>Repeat Password</span>
+        @Html.PasswordFor(m => m.PasswordRepeat, new { @class = "form-control" })
         <div class="hor-center-parent">
-            <button class="btn btn-default" type="submit" value="submit">Go</button>
+            <button class="btn btn-default" type="submit">Register</button>
         </div>
-    </div>
-
-    <div class="hor-center-parent">
-        @Html.ActionLink("Are you a new one?", "Index", "Register", null, new { @class = "btn btn-link" })
+        @Html.ActionLink("Login Page", "Index", "Login", null, new { @class = "btn btn-link" })
     </div>
 
     if (Model.MessageViewModel != null && Model.MessageViewModel.HasError)
@@ -47,6 +47,7 @@
             @Model.MessageViewModel.Message
         </div>
     }
-}
+} 
+</div>
 </body>
 </html>

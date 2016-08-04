@@ -36,5 +36,14 @@ namespace Chat.Logic.Elastic
 
             return ElasticResult<T>.SuccessResult(hitsArray.ElementAt(0).Source);
         }
+
+        public ElasticResult<T> Add<T>(string esType, T @object) where T : class, IGuidedEntity
+        {
+            var response = _elasticRepository.ExecuteCreateOrUpdateRequest(@object, esType);
+
+            return response.Success
+                ? ElasticResult<T>.SuccessResult(@object)
+                : ElasticResult<T>.FailResult(response.Message);
+        }
     }
 }

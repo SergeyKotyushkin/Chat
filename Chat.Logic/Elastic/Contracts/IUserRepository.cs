@@ -8,5 +8,9 @@ namespace Chat.Logic.Elastic.Contracts
         ElasticResult<User> Login(string login, string password);
 
         ElasticResult<User> CheckToken(string token);
+
+        ElasticResult<User> CheckLogin(string login);
+
+        ElasticResult<User> Add(string login, string password);
     }
 }
