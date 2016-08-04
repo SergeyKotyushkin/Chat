@@ -2,3 +2,8 @@
     width: 100%;
     text-align: center;
 }
+
+.hor-right-parent {
+    width: 100%;
+    text-align: right;
+}

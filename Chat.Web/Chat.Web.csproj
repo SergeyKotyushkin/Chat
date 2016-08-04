@@ -129,6 +129,7 @@
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Content Include="Content\Css\bootstrap.min.css" />
+    <Content Include="Content\Css\chat.css" />
     <Content Include="Content\Css\common.css" />
     <Content Include="Content\Css\font-awesome.min.css" />
     <Content Include="Content\Css\login.css" />

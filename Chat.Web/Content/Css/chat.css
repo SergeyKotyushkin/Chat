@@ -1,0 +1,73 @@
+﻿html, body {
+    width: 100%;
+}
+
+body > .container > .row {
+    margin-top: 20px;
+}
+
+body > .container > .panel {
+    max-width: 600px;
+    margin: 0 auto;
+    margin-top: 20px;
+}
+
+#chat-panel {
+    border: 1px solid #b1b1b1;
+    margin-bottom: 10px;
+}
+
+div.h4 {
+    text-align: center;
+}
+
+div.panel input {
+    margin-bottom: 5px;
+}
+
+div.alert {
+    max-width: 300px;
+    margin: 0 auto;
+    padding: 10px;
+    margin-top: 20px;
+    text-align: center;
+}
+
+#chat-messages {
+    height: 400px;
+    margin: 5px;
+    border: 1px solid #b1b1b1;
+}
+
+#new-message {
+    margin: 5px;
+}
+
+#new-message > .btn {
+    float: right;
+}
+
+#new-message > div {
+    overflow: hidden;
+    padding-right: .5em;
+}
+
+#new-message > div > input[type=text] {
+    width: 100%;
+}
+
+#chats-panel {
+    border: 1px solid #b1b1b1;
+}
+
+#chats-panel .panel-body {
+    height: 150px;
+}
+
+#users-panel .panel-body {
+    height: 150px;
+}
+
+#new-chat-panel .panel-body {
+    height: 150px;
+}
