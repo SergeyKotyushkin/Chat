@@ -45,5 +45,23 @@ namespace Chat.Logic.Elastic
                 ? ElasticResult<T>.SuccessResult(@object)
                 : ElasticResult<T>.FailResult(response.Message);
         }
+
+        public ElasticResult<T[]> GetAll<T>(string esType) where T : class
+        {
+            var searchDescriptor = new SearchDescriptor<T>().AllIndices().Index(_elasticRepository.EsIndex).Type(esType);
+
+            var response = _elasticRepository.ExecuteSearchRequest(searchDescriptor);
+
+            return GetEntitiesFromElasticResponse(response);
+        }
+
+        public ElasticResult<T[]> GetEntitiesFromElasticResponse<T>(ElasticResponse<T> response) where T : class
+        {
+            // If request bad executed.
+            return !response.Success
+                ? ElasticResult<T[]>.FailResult(response.Message)
+                : ElasticResult<T[]>.SuccessResult(
+                    response.Response.Hits.Select(h => h.Source).Where(s => s != null).ToArray());
+        }
     }
 }

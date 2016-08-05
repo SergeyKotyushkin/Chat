@@ -9,5 +9,9 @@ namespace Chat.Logic.Elastic.Contracts
         ElasticResult<T> GetEntityIfOnlyOneEntityInElasticResponse<T>(ElasticResponse<T> response) where T : class;
 
         ElasticResult<T> Add<T>(string esType, T @object) where T : class, IGuidedEntity;
+
+        ElasticResult<T[]> GetAll<T>(string esType) where T : class;
+
+        ElasticResult<T[]> GetEntitiesFromElasticResponse<T>(ElasticResponse<T> response) where T : class;
     }
 }

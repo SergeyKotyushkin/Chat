@@ -1,5 +1,4 @@
-﻿using System;
-using Chat.Logic.Elastic.Contracts;
+﻿using Chat.Logic.Elastic.Contracts;
 using Chat.Logic.StructureMap;
 using Chat.Models;
 using Nest;
@@ -72,6 +71,25 @@ namespace Chat.Logic.Elastic
             var user = new User(login, password);
 
             return _entityRepository.Add(EsType, user);
+        }
+
+        public ElasticResult<User> Update(User user)
+        {
+            var response = _elasticRepository.ExecuteCreateOrUpdateRequest(user, EsType);
+
+            return response.Success
+                ? ElasticResult<User>.SuccessResult(user)
+                : ElasticResult<User>.FailResult(response.Message);
+        }
+
+        public ElasticResult<User[]> GetAll()
+        {
+            return _entityRepository.GetAll<User>(EsType);
+        }
+
+        public ElasticResult<User> Get(string guid)
+        {
+            return _entityRepository.Get<User>(EsType, guid);
         }
     }
 }

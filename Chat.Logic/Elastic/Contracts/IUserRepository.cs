@@ -12,5 +12,11 @@ namespace Chat.Logic.Elastic.Contracts
         ElasticResult<User> CheckLogin(string login);
 
         ElasticResult<User> Add(string login, string password);
+
+        ElasticResult<User> Update(User user);
+
+        ElasticResult<User[]> GetAll();
+
+        ElasticResult<User> Get(string guid);
     }
 }

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Chat.Logic.Elastic.Contracts;
 using Nest;
@@ -10,7 +9,7 @@ namespace Chat.Logic.Elastic.Models
     {
         public User(string login, string password)
         {
-            Guid = new Guid().ToString();
+            Guid = System.Guid.NewGuid().ToString();
             Login = login;
             Password = password;
             ConnectionIds = new HashSet<string>();
