@@ -48,7 +48,7 @@ namespace Chat.Logic.Elastic
             try
             {
                 var client = GetElasticClient();
-                var response = client.IndexAsync(@object, i => i.Index(EsIndex).Type(esType).Id(@object.Guid)).Result;
+                var response = client.Index(@object, i => i.Index(EsIndex).Type(esType).Id(@object.Guid));
 
                 return response.ApiCall.Success
                     ? ElasticIndexResponse.SuccessResponse(response)
