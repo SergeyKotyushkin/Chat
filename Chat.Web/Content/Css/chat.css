@@ -17,6 +17,10 @@ body > .container > .panel {
     margin-bottom: 10px;
 }
 
+#chat-panel > .panel-body {
+    height: 400px;
+}
+
 div.h4 {
     text-align: center;
 }
@@ -34,7 +38,6 @@ div.alert {
 }
 
 #chat-messages {
-    height: 400px;
     margin: 5px;
     border: 1px solid #b1b1b1;
 }

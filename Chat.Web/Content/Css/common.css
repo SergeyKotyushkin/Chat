@@ -7,3 +7,17 @@
     width: 100%;
     text-align: right;
 }
+
+.centered-parent {
+    display: table;
+    width: 100%;
+    height: 100%;
+}
+
+.centered-parent > .centered-child {
+    display: table-cell;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    vertical-align: middle;
+}

@@ -137,6 +137,7 @@
     <Content Include="Global.asax" />
     <Content Include="Scripts\ajax.js" />
     <Content Include="Scripts\bootstrap.min.js" />
+    <Content Include="Scripts\chat.js" />
     <Content Include="Scripts\jquery-1.9.1.min.js" />
     <Content Include="Scripts\jquery.signalR-2.2.0.min.js" />
     <Content Include="Scripts\knockout-3.4.0.js" />

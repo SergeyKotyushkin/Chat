@@ -13,12 +13,15 @@
 
     <script src="~/Scripts/jquery-1.9.1.min.js"></script>
     <script src="~/Scripts/bootstrap.min.js"></script>
+    <script src="~/Scripts/ajax.js"></script>
+    <script src="~/Scripts/knockout-3.4.0.js"></script>
+    <script src="~/Scripts/jquery.signalR-2.2.0.min.js"></script>
 </head>
 <body>
 <div class="container">
     <div class="row">
         <div class="hor-right-parent">
-            @Html.ActionLink("Close", "Close", "Chat", null, new { @class = "btn btn-link" })
+            @Html.ActionLink("Close", "Close", "Chat", null, new {@class = "btn btn-link"})
         </div>
     </div>
     <div class="row">
@@ -28,11 +31,18 @@
                     <div class="h4 panel-title">Chat here</div>
                 </div>
                 <div class="panel-body">
-                    <div id="chat-messages"></div>
-                    <div id="new-message">
-                        <input class="btn btn-default" type="button" value="Send"/>
-                        <div>
-                            <input type="text" class="form-control"/>
+                    <div data-bind="if: currentChat() == null" class="centered-parent">
+                        <div class="centered-child">
+                            <span>Choose some chat</span>
+                        </div>
+                    </div>
+                    <div data-bind="if: currentChat() != null">
+                        <div id="chat-messages"></div>
+                        <div id="new-message">
+                            <input class="btn btn-default" type="button" value="Send" />
+                            <div>
+                                <input type="text" class="form-control"/>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -74,5 +84,8 @@
         </div>
     </div>
 </div>
+
+@* js load *@
+<script src="~/Scripts/chat.js"></script>
 </body>
 </html>
