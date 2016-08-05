@@ -86,12 +86,18 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Elastic\ChatRepository.cs" />
+    <Compile Include="Elastic\ChatUserRepository.cs" />
+    <Compile Include="Elastic\Contracts\IChatRepository.cs" />
+    <Compile Include="Elastic\Contracts\IChatUserRepository.cs" />
     <Compile Include="Elastic\Contracts\IElasticRepository.cs" />
     <Compile Include="Elastic\Contracts\IEntityRepository.cs" />
     <Compile Include="Elastic\Contracts\IGuidedEntity.cs" />
     <Compile Include="Elastic\Contracts\IUserRepository.cs" />
     <Compile Include="Elastic\ElasticRepository.cs" />
     <Compile Include="Elastic\EntityRepository.cs" />
+    <Compile Include="Elastic\Models\ElasticChat.cs" />
+    <Compile Include="Elastic\Models\ElasticChatUser.cs" />
     <Compile Include="Elastic\Models\User.cs" />
     <Compile Include="Elastic\UserRepository.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

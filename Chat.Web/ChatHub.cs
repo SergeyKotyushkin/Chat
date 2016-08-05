@@ -50,8 +50,13 @@ namespace Chat.Web
 
             // TODO: Update chats
 
-            Clients.Caller.onLoginCaller(JsonConvert.SerializeObject(user));
-            Clients.AllExcept(user.ConnectionIds.ToArray()).onLoginOthers(JsonConvert.SerializeObject(user));
+            var userElasticResult = _userRepository.GetAll();
+            Clients.Caller.onLoginCaller(
+                JsonConvert.SerializeObject(
+                    new {user, users = userElasticResult.Success ? userElasticResult.Value : new User[] {}}));
+
+            if (user.ConnectionIds.Count() == 1)
+                Clients.AllExcept(user.ConnectionIds.ToArray()).onLoginOthers(JsonConvert.SerializeObject(user));
         }
 
         public override Task OnDisconnected(bool stopCalled)
@@ -63,7 +68,7 @@ namespace Chat.Web
 
             // Remove current connection id
             user.ConnectionIds.Remove(Context.ConnectionId);
-            //user.ConnectionIds.Clear();
+            user.ConnectionIds.Clear();
             var elasticResult = _userRepository.Update(user);
             if(!elasticResult.Success || elasticResult.Value == null)
                 return base.OnDisconnected(stopCalled);
@@ -75,6 +80,17 @@ namespace Chat.Web
                 Clients.All.onDisconnectOthers(JsonConvert.SerializeObject(user));
 
             return base.OnDisconnected(stopCalled);
+        }
+
+        public void CreateChat(string name, string guid)
+        {
+            var userElasticResult = _userRepository.Get(guid);
+            if(!userElasticResult.Success)
+                return;
+
+            // Add all the connection ids of the user to the new chat
+            foreach (var connectionId in userElasticResult.Value.ConnectionIds)
+                Groups.Add(connectionId, name);
         }
 
         #endregion

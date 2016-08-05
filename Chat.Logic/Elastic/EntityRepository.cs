@@ -10,6 +10,7 @@ namespace Chat.Logic.Elastic
     {
         private readonly IElasticRepository _elasticRepository = StructureMapFactory.Resolve<IElasticRepository>();
 
+        #region Public Methods
 
         public ElasticResult<T> Get<T>(string esType, string guid) where T : class, IGuidedEntity
         {
@@ -21,7 +22,8 @@ namespace Chat.Logic.Elastic
             return GetEntityIfOnlyOneEntityInElasticResponse(response);
         }
 
-        public ElasticResult<T> GetEntityIfOnlyOneEntityInElasticResponse<T>(ElasticResponse<T> response) where T : class
+        public ElasticResult<T> GetEntityIfOnlyOneEntityInElasticResponse<T>(ElasticResponse<T> response)
+            where T : class
         {
             // If request bad executed.
             if (!response.Success)
@@ -63,5 +65,26 @@ namespace Chat.Logic.Elastic
                 : ElasticResult<T[]>.SuccessResult(
                     response.Response.Hits.Select(h => h.Source).Where(s => s != null).ToArray());
         }
+
+        public ElasticResult<T[]> GetByGuids<T>(string esType, params string[] guids) where T : class
+        {
+            if (guids.Length == 0)
+                return ElasticResult<T[]>.SuccessResult(new T[] {});
+
+            var multiGetDescriptor =
+                new MultiGetDescriptor().GetMany<T>(guids).Index(_elasticRepository.EsIndex).Type(esType);
+
+            var response = _elasticRepository.ExecuteMultiGetRequest(multiGetDescriptor);
+
+            if (!response.Success)
+                return ElasticResult<T[]>.FailResult(response.Message);
+
+            var multiGetResponse = response.Response;
+            var hits = multiGetResponse.GetMany<T>(guids);
+
+            return ElasticResult<T[]>.SuccessResult(hits.Select(hit => hit.Source).Where(hit => hit != null).ToArray());
+        }
+
+        #endregion
     }
 }

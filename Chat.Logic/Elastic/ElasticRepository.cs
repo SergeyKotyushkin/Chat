@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Chat.Logic.Elastic.Contracts;
 using Chat.Models;
 using Nest;
@@ -47,7 +48,7 @@ namespace Chat.Logic.Elastic
             try
             {
                 var client = GetElasticClient();
-                var response = client.Index(@object, i => i.Index(EsIndex).Type(esType).Id(@object.Guid));
+                var response = client.IndexAsync(@object, i => i.Index(EsIndex).Type(esType).Id(@object.Guid)).Result;
 
                 return response.ApiCall.Success
                     ? ElasticIndexResponse.SuccessResponse(response)
@@ -57,6 +58,24 @@ namespace Chat.Logic.Elastic
             catch
             {
                 return ElasticIndexResponse.FailResponse("Server error.");
+            }
+        }
+
+        public ElasticMultiGetResponse ExecuteMultiGetRequest(MultiGetDescriptor multiGetDescriptor)
+        {
+            try
+            {
+                var client = GetElasticClient();
+                var response = client.MultiGet(m => multiGetDescriptor);
+
+                return response.ApiCall.Success
+                    ? ElasticMultiGetResponse.SuccessResponse(response)
+                    : ElasticMultiGetResponse.FailResponse("Request ended with error. " +
+                                                        response.ApiCall.OriginalException.Message);
+            }
+            catch
+            {
+                return ElasticMultiGetResponse.FailResponse("Server error");
             }
         }
 

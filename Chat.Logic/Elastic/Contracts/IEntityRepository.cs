@@ -13,5 +13,7 @@ namespace Chat.Logic.Elastic.Contracts
         ElasticResult<T[]> GetAll<T>(string esType) where T : class;
 
         ElasticResult<T[]> GetEntitiesFromElasticResponse<T>(ElasticResponse<T> response) where T : class;
+
+        ElasticResult<T[]> GetByGuids<T>(string esType, params string[] guids) where T : class;
     }
 }

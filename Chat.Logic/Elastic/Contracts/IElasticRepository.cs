@@ -1,4 +1,5 @@
-﻿using Chat.Models;
+﻿using System.Threading.Tasks;
+using Chat.Models;
 using Nest;
 
 namespace Chat.Logic.Elastic.Contracts
@@ -10,5 +11,7 @@ namespace Chat.Logic.Elastic.Contracts
         ElasticResponse<T> ExecuteSearchRequest<T>(SearchDescriptor<T> searchDescriptor) where T : class;
 
         ElasticIndexResponse ExecuteCreateOrUpdateRequest<T>(T @object, string esType) where T : class, IGuidedEntity;
+
+        ElasticMultiGetResponse ExecuteMultiGetRequest(MultiGetDescriptor multiGetDescriptor);
     }
 }

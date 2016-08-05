@@ -52,6 +52,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ElasticIndexResponse.cs" />
+    <Compile Include="ElasticMultiGetResponse.cs" />
     <Compile Include="ElasticResponse.cs" />
     <Compile Include="ElasticResult.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

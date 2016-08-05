@@ -65,3 +65,19 @@ div.alert {
 #new-chat-panel .panel-body {
     height: 150px;
 }
+
+#users-panel li {
+    margin-bottom: 5px;    
+}
+
+.online {
+    background-color: #228b22;
+    color: white;
+    padding: 3px;
+}
+
+.offline {
+    background-color: #a52a2a;
+    color: white;
+    padding: 3px;
+}
