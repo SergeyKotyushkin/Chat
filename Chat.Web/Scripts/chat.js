@@ -20,6 +20,27 @@ function visibilityChatDiv(show) {
         $("#chat-div").addClass("hidden");
 }
 
+function visibilityLoadingDiv(show) {
+    if (show)
+        $("#loading-image").removeClass("hidden");
+    else
+        $("#loading-image").addClass("hidden");
+}
+
+function spinAllUsersSpinner(spin) {
+    if (spin)
+        $("#all-users-spinner").addClass("fa-spin");
+    else
+        $("#all-users-spinner").removeClass("fa-spin");
+}
+
+function spinAllChatsSpinner(spin) {
+    if (spin)
+        $("#all-chats-spinner").addClass("fa-spin");
+    else
+        $("#all-chats-spinner").removeClass("fa-spin");
+}
+
 function setErrorMessage(model, message) {
     model.errorMessage(message);
     model.hasErrorMessage(true);
@@ -41,13 +62,15 @@ function arrayFirstIndexOf(array, predicate, predicateOwner) {
     return -1;
 }
 
-function getAllUsers(model, user) {
+function getAllUsers(model, callback) {
+    var user = model.currentUser();
     $.post("Chat/GetAllUsers", { guid: user.Guid }, function(json) {
         var result = JSON.parse(json);
 
         if (result.error != null && result.error) {
             visibilityChatDiv(false);
             setErrorMessage(model, result.message);
+            callback();
             return;
         }
 
@@ -55,16 +78,20 @@ function getAllUsers(model, user) {
         for (var i = 0; i < result.length; i++) {
             model.users.push(result[i]);
         }
+
+        callback();
     });
 }
 
-function getAllChats(model, user) {
+function getAllChats(model, callback) {
+    var user = model.currentUser();
     $.post("Chat/GetAllChats", { guid: user.Guid }, function (json) {
         var result = JSON.parse(json);
 
         if (result.error != null && result.error) {
             visibilityChatDiv(false);
             setErrorMessage(model, result.message);
+            callback();
             return;
         }
 
@@ -72,6 +99,8 @@ function getAllChats(model, user) {
         for (var i = 0; i < result.length; i++) {
             model.chats.push(result[i]);
         }
+
+        callback();
     });
 }
 
@@ -134,7 +163,32 @@ $(document).ready(function () {
         self.users = ko.observableArray([]);
 
         self.newChatName = ko.observable();
-        self.createNewChat = function () { createChat(self, chat.server); }
+        self.createNewChat = function() {
+            createChat(self, chat.server);
+            newChatName(null);
+        }
+        self.setChatClick = function(chat) {
+            self.currentChat(chat);
+        }
+        self.closeChatClick = function() {
+            self.currentChat(null);
+        }
+
+        self.updateUsersClick = function () {
+            spinAllUsersSpinner(true);
+
+            getAllUsers(self, function() {
+                spinAllUsersSpinner(false);
+            });
+        }
+
+        self.updateChatsClick = function () {
+            spinAllChatsSpinner(true);
+
+            getAllChats(self, function () {
+                spinAllChatsSpinner(false);
+            });
+        }
     }
 
     var viewModel = new chatViewModel();
@@ -148,15 +202,21 @@ $(document).ready(function () {
             setErrorMessage(viewModel, result.message);
             return;
         }
+        
+        viewModel.currentUser(result);
 
-        viewModel.currentUser(result.user);
-
-        viewModel.users.removeAll();
-        for (var i = 0; i < result.users.length; i++) {
-            viewModel.users.push(result.users[i]);
-        }
         // get all users
-        //getAllUsers(viewModel, result);
+        spinAllUsersSpinner(true);
+        spinAllChatsSpinner(true);
+        setTimeout(function() {
+            getAllUsers(viewModel, function() {
+                spinAllUsersSpinner(false);
+            });
+
+            getAllChats(viewModel, function() {
+                spinAllChatsSpinner(false);
+            });
+        }, 1000);
     };
     
     chat.client.onLoginOthers = function (json) {
@@ -164,7 +224,7 @@ $(document).ready(function () {
             return;
 
         var result = JSON.parse(json);
-        //updateUsers(viewModel, result);
+        updateUsers(viewModel, result);
     };
 
     chat.client.onDisconnectOthers = function (json) {
@@ -172,14 +232,19 @@ $(document).ready(function () {
             return;
 
         var result = JSON.parse(json);
-        //updateUsers(viewModel, result);
+        updateUsers(viewModel, result);
     };
 
-    $.connection.hub.start()
-        .done(function() {
-            chat.server.login();
-        })
-        .fail(function(e) {
-            alert(e);
-        });
+    visibilityLoadingDiv(true);
+    setTimeout(function() {
+        $.connection.hub.start()
+            .done(function() {
+                chat.server.login();
+                visibilityLoadingDiv(false);
+            })
+            .fail(function(e) {
+                alert(e);
+                visibilityLoadingDiv(false);
+            });
+    }, 1000); // Wait 1 second.
 });

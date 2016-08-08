@@ -50,13 +50,10 @@ namespace Chat.Web
 
             // TODO: Update chats
 
-            var userElasticResult = _userRepository.GetAll();
-            Clients.Caller.onLoginCaller(
-                JsonConvert.SerializeObject(
-                    new {user, users = userElasticResult.Success ? userElasticResult.Value : new User[] {}}));
-
+            user = elasticResult.Value;
             if (user.ConnectionIds.Count() == 1)
-                Clients.AllExcept(user.ConnectionIds.ToArray()).onLoginOthers(JsonConvert.SerializeObject(user));
+                Clients.Others.onLoginOthers(JsonConvert.SerializeObject(user));
+            Clients.Caller.onLoginCaller(JsonConvert.SerializeObject(user));
         }
 
         public override Task OnDisconnected(bool stopCalled)
@@ -68,7 +65,7 @@ namespace Chat.Web
 
             // Remove current connection id
             user.ConnectionIds.Remove(Context.ConnectionId);
-            user.ConnectionIds.Clear();
+            //user.ConnectionIds.Clear();
             var elasticResult = _userRepository.Update(user);
             if(!elasticResult.Success || elasticResult.Value == null)
                 return base.OnDisconnected(stopCalled);
@@ -76,8 +73,9 @@ namespace Chat.Web
             // TODO: Update chats
 
             // Alert others if you became offline
-            if (!user.IsOnline)
-                Clients.All.onDisconnectOthers(JsonConvert.SerializeObject(user));
+            var updatedUser = elasticResult.Value;
+            if (!updatedUser.IsOnline)
+                Clients.All.onDisconnectOthers(JsonConvert.SerializeObject(updatedUser));
 
             return base.OnDisconnected(stopCalled);
         }

@@ -97,7 +97,7 @@ namespace Chat.Web.Controllers
             if (!chatElasticResult.Success)
                 return JsonConvert.SerializeObject(new {error = true, code = 2, message = chatElasticResult.Message});
 
-            var chatUserElasticResult = _chatUserRepository.Add(name, guid);
+            var chatUserElasticResult = _chatUserRepository.Add(chatElasticResult.Value.Guid, guid);
             if (!chatUserElasticResult.Success)
                 return JsonConvert.SerializeObject(new {error = true, code = 2, message = chatUserElasticResult.Message});
 

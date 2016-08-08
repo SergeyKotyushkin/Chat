@@ -160,6 +160,8 @@
     <Content Include="Content\Css\font-awesome.min.css" />
     <Content Include="Content\Css\login.css" />
     <Content Include="Content\Css\register.css" />
+    <Content Include="Content\fonts\fontawesome-webfont.svg" />
+    <Content Include="Content\Images\ajax-loader.gif" />
     <Content Include="Global.asax" />
     <Content Include="Scripts\ajax.js" />
     <Content Include="Scripts\bootstrap.min.js" />
@@ -200,6 +202,13 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Views\Register\Index.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Content\fonts\fontawesome-webfont.eot" />
+    <Content Include="Content\fonts\fontawesome-webfont.ttf" />
+    <Content Include="Content\fonts\fontawesome-webfont.woff" />
+    <Content Include="Content\fonts\fontawesome-webfont.woff2" />
+    <Content Include="Content\fonts\FontAwesome.otf" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

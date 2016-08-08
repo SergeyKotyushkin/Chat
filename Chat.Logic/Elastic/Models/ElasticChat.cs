@@ -1,5 +1,6 @@
 ﻿using Chat.Logic.Elastic.Contracts;
 using Nest;
+using Newtonsoft.Json;
 
 namespace Chat.Logic.Elastic.Models
 {
@@ -12,6 +13,7 @@ namespace Chat.Logic.Elastic.Models
             CreatorGuid = creatorGuid;
         }
 
+        [JsonConstructor]
         public ElasticChat(string guid, string name, string creatorGuid)
         {
             Guid = guid;
