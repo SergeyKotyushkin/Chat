@@ -56,7 +56,7 @@ namespace Chat.Web.Controllers
 
             var elasticResult = _userRepository.GetAll();
             if (!elasticResult.Success)
-                return JsonConvert.SerializeObject(new User[] {});
+                return JsonConvert.SerializeObject(new ElasticUser[] {});
 
             var users = elasticResult.Value;
             return JsonConvert.SerializeObject(users.OrderBy(u => u.UserName));

@@ -15,7 +15,7 @@ namespace Chat.Web
 
             GlobalHost.DependencyResolver.Register(typeof(ChatHub),
                 () => new ChatHub(
-                    new UserRepository(), new ChatUserRepository())
+                    new UserRepository(), new ChatUserRepository(), new MessageRepository())
                 );
 
             app.MapSignalR();

@@ -5,9 +5,9 @@ using Nest;
 
 namespace Chat.Logic.Elastic.Models
 {
-    public class User : IGuidedEntity
+    public class ElasticUser : IGuidedEntity
     {
-        public User(string login, string password)
+        public ElasticUser(string login, string password)
         {
             Guid = System.Guid.NewGuid().ToString();
             Login = login;

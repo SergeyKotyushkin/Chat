@@ -1,6 +1,6 @@
 ﻿using System;
-using System.Threading.Tasks;
 using Chat.Logic.Elastic.Contracts;
+using Chat.Logic.Elastic.Models;
 using Chat.Models;
 using Nest;
 
@@ -93,15 +93,18 @@ namespace Chat.Logic.Elastic
                 if (isIndexExist)
                     return ElasticResult<bool?>.SuccessResult(true);
 
-                //var response = client.CreateIndex(EsIndexName,
-                //    i =>
-                //        i.Mappings(
-                //            m => m
-                //                .Map<User>(map => map.AutoMap())
-                //                .Map<Chat>(map => map.AutoMap())
-                //                .Map<ChatUser>(map => map.AutoMap())));
+                var response = client.CreateIndex(EsIndexName,
+                    i =>
+                        i.Mappings(
+                            m => m
+                                .Map<ElasticUser>(map => map.AutoMap())
+                                .Map<ElasticChat>(map => map.AutoMap())
+                                .Map<ElasticChatUser>(map => map.AutoMap())
+                                .Map<ElasticMessage>(map => map.AutoMap())));
 
-                return ElasticResult<bool?>.SuccessResult(true);
+                return response.ApiCall.Success
+                    ? ElasticResult<bool?>.SuccessResult(true)
+                    : ElasticResult<bool?>.FailResult(response.ApiCall.ServerError.Error.ToString());
             }
             catch
             {

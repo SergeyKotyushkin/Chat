@@ -12,15 +12,19 @@ namespace Chat.Web
     {
         private const string CookieName = "chat_secret";
         private const string ServerErrorMessage = "Server Error";
+        private const string UserErrorMessage = "Please relogin to chat. Your personal data is incorrect.";
 
         private readonly IUserRepository _userRepository;
         private readonly IChatUserRepository _chatUserRepository;
+        private readonly IMessageRepository _messageRepository;
 
 
-        public ChatHub(IUserRepository userRepository, IChatUserRepository chatUserRepository)
+        public ChatHub(IUserRepository userRepository, IChatUserRepository chatUserRepository,
+            IMessageRepository messageRepository)
         {
             _userRepository = userRepository;
             _chatUserRepository = chatUserRepository;
+            _messageRepository = messageRepository;
         }
 
         #region Public Methods
@@ -31,12 +35,7 @@ namespace Chat.Web
             var user = GetUserFromCookies(Context.RequestCookies);
             if (user == null)
             {
-                Clients.Caller.onLoginCaller(JsonConvert.SerializeObject(new
-                {
-                    error = true,
-                    message = "Please relogin to chat. Your personal data is incorrect."
-                }));
-
+                Clients.Caller.onLoginCaller(JsonConvert.SerializeObject(new {error = true, message = UserErrorMessage}));
                 return;
             }
 
@@ -107,19 +106,48 @@ namespace Chat.Web
         public void CreateChat(string name, string guid)
         {
             var userElasticResult = _userRepository.Get(guid);
-            if(!userElasticResult.Success)
+            if (!userElasticResult.Success)
+            {
+                Clients.Caller.onCreateChatCaller(
+                    JsonConvert.SerializeObject(new { error = true, message = UserErrorMessage }));
                 return;
+            }
 
             // Add all the connection ids of the user to the new chat
             foreach (var connectionId in userElasticResult.Value.ConnectionIds)
                 Groups.Add(connectionId, name);
         }
 
+        public void SendMessage(string text, string userGuid, string chatGuid)
+        {
+            var userElasticResult = _userRepository.Get(userGuid);
+            if (!userElasticResult.Success)
+            {
+                Clients.Caller.onSendMessageCaller(
+                    JsonConvert.SerializeObject(new { error = true, message = UserErrorMessage }));
+                return;
+            }
+
+            var user = userElasticResult.Value;
+
+            // Save Message
+            var messageElasticResult = _messageRepository.Add(chatGuid, user, text);
+            if (!messageElasticResult.Success)
+            {
+                Clients.Caller.onSendMessageCaller(
+                    JsonConvert.SerializeObject(new { error = true, message = ServerErrorMessage }));
+                return;
+            }
+
+            var message = JsonConvert.SerializeObject(messageElasticResult.Value);
+            Clients.Group(chatGuid).onSendMessageOthers(message);
+        }
+
         #endregion
 
         #region Private Methods
 
-        private User GetUserFromCookies(IDictionary<string, Cookie> cookies)
+        private ElasticUser GetUserFromCookies(IDictionary<string, Cookie> cookies)
         {
             if (!cookies.ContainsKey(CookieName))
                 return null;

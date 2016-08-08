@@ -159,18 +159,20 @@ $(document).ready(function () {
         self.successMessage = ko.observable(null);
 
         self.chats = ko.observableArray([]);
-
         self.users = ko.observableArray([]);
+        self.messages = ko.observableArray([]);
 
         self.newChatName = ko.observable();
         self.createNewChat = function() {
             createChat(self, chat.server);
             newChatName(null);
         }
-        self.setChatClick = function(chat) {
+        self.setChatClick = function (chat) {
+            self.messages.removeAll();
             self.currentChat(chat);
         }
-        self.closeChatClick = function() {
+        self.closeChatClick = function () {
+            self.messages.removeAll();
             self.currentChat(null);
         }
 
@@ -188,6 +190,20 @@ $(document).ready(function () {
             getAllChats(self, function () {
                 spinAllChatsSpinner(false);
             });
+        }
+
+        self.messageText = ko.observable(null);
+        self.sendMessageClick = function () {
+            var message = self.messageText().trim();
+            if (message.length)
+                chat.server.sendMessage(message, self.currentUser().Guid, self.currentChat().Guid);
+
+            self.messageText(null);
+        }
+
+        self.afterRenderMessages = function(elements, data) {
+            if (this.foreach()[this.foreach().length - 1] === data)
+                $("#chat-messages").animate({ scrollTop: $("#chat-messages")[0].scrollHeight }, "slow");
         }
     }
 
@@ -233,6 +249,35 @@ $(document).ready(function () {
 
         var result = JSON.parse(json);
         updateUsers(viewModel, result);
+    };
+
+    chat.client.onCreateChatCaller = function (json) {
+        var result = JSON.parse(json);
+
+        if (result.error != null && result.error) {
+            setErrorMessage(viewModel, result.message);
+            return;
+        }
+    };
+
+    chat.client.onSendMessageCaller = function (json) {
+        var result = JSON.parse(json);
+
+        if (result.error != null && result.error) {
+            setErrorMessage(viewModel, result.message);
+            return;
+        }
+    };
+
+    chat.client.onSendMessageOthers = function (json) {
+        var result = JSON.parse(json);
+
+        if (result.error != null && result.error) {
+            setErrorMessage(viewModel, result.message);
+            return;
+        }
+
+        viewModel.messages.push(result);
     };
 
     visibilityLoadingDiv(true);

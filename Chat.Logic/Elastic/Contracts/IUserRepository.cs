@@ -5,18 +5,18 @@ namespace Chat.Logic.Elastic.Contracts
 {
     public interface IUserRepository
     {
-        ElasticResult<User> Login(string login, string password);
+        ElasticResult<ElasticUser> Login(string login, string password);
 
-        ElasticResult<User> CheckToken(string token);
+        ElasticResult<ElasticUser> CheckToken(string token);
 
-        ElasticResult<User> CheckLogin(string login);
+        ElasticResult<ElasticUser> CheckLogin(string login);
 
-        ElasticResult<User> Add(string login, string password);
+        ElasticResult<ElasticUser> Add(string login, string password);
 
-        ElasticResult<User> Update(User user);
+        ElasticResult<ElasticUser> Update(ElasticUser user);
 
-        ElasticResult<User[]> GetAll();
+        ElasticResult<ElasticUser[]> GetAll();
 
-        ElasticResult<User> Get(string guid);
+        ElasticResult<ElasticUser> Get(string guid);
     }
 }

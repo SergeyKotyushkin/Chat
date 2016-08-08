@@ -93,12 +93,15 @@
     <Compile Include="Elastic\Contracts\IElasticRepository.cs" />
     <Compile Include="Elastic\Contracts\IEntityRepository.cs" />
     <Compile Include="Elastic\Contracts\IGuidedEntity.cs" />
+    <Compile Include="Elastic\Contracts\IMessageRepository.cs" />
     <Compile Include="Elastic\Contracts\IUserRepository.cs" />
     <Compile Include="Elastic\ElasticRepository.cs" />
     <Compile Include="Elastic\EntityRepository.cs" />
+    <Compile Include="Elastic\MessageRepository.cs" />
     <Compile Include="Elastic\Models\ElasticChat.cs" />
     <Compile Include="Elastic\Models\ElasticChatUser.cs" />
-    <Compile Include="Elastic\Models\User.cs" />
+    <Compile Include="Elastic\Models\ElasticMessage.cs" />
+    <Compile Include="Elastic\Models\ElasticUser.cs" />
     <Compile Include="Elastic\UserRepository.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="StringExtensions.cs" />

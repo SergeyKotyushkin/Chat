@@ -1,8 +1,8 @@
 ﻿using Chat.Logic.Elastic.Contracts;
+using Chat.Logic.Elastic.Models;
 using Chat.Logic.StructureMap;
 using Chat.Models;
 using Nest;
-using User = Chat.Logic.Elastic.Models.User;
 
 namespace Chat.Logic.Elastic
 {
@@ -14,9 +14,9 @@ namespace Chat.Logic.Elastic
         private readonly IEntityRepository _entityRepository = StructureMapFactory.Resolve<IEntityRepository>();
 
 
-        public ElasticResult<User> Login(string login, string password)
+        public ElasticResult<ElasticUser> Login(string login, string password)
         {
-            var searchDescriptor = new SearchDescriptor<User>().Query(
+            var searchDescriptor = new SearchDescriptor<ElasticUser>().Query(
                 q =>
                     q.Bool(
                         b =>
@@ -32,9 +32,9 @@ namespace Chat.Logic.Elastic
             return _entityRepository.GetEntityIfOnlyOneEntityInElasticResponse(response);
         }
 
-        public ElasticResult<User> CheckToken(string token)
+        public ElasticResult<ElasticUser> CheckToken(string token)
         {
-            var searchDescriptor = new SearchDescriptor<User>().Query(
+            var searchDescriptor = new SearchDescriptor<ElasticUser>().Query(
                 q =>
                     q.Bool(
                         b =>
@@ -49,9 +49,9 @@ namespace Chat.Logic.Elastic
             return _entityRepository.GetEntityIfOnlyOneEntityInElasticResponse(response);
         }
 
-        public ElasticResult<User> CheckLogin(string login)
+        public ElasticResult<ElasticUser> CheckLogin(string login)
         {
-            var searchDescriptor = new SearchDescriptor<User>().Query(
+            var searchDescriptor = new SearchDescriptor<ElasticUser>().Query(
                 q =>
                     q.Bool(
                         b =>
@@ -66,30 +66,30 @@ namespace Chat.Logic.Elastic
             return _entityRepository.GetEntityIfOnlyOneEntityInElasticResponse(response);
         }
 
-        public ElasticResult<User> Add(string login, string password)
+        public ElasticResult<ElasticUser> Add(string login, string password)
         {
-            var user = new User(login, password);
+            var user = new ElasticUser(login, password);
 
             return _entityRepository.Add(EsType, user);
         }
 
-        public ElasticResult<User> Update(User user)
+        public ElasticResult<ElasticUser> Update(ElasticUser user)
         {
             var response = _elasticRepository.ExecuteCreateOrUpdateRequest(user, EsType);
 
             return response.Success
-                ? ElasticResult<User>.SuccessResult(user)
-                : ElasticResult<User>.FailResult(response.Message);
+                ? ElasticResult<ElasticUser>.SuccessResult(user)
+                : ElasticResult<ElasticUser>.FailResult(response.Message);
         }
 
-        public ElasticResult<User[]> GetAll()
+        public ElasticResult<ElasticUser[]> GetAll()
         {
-            return _entityRepository.GetAll<User>(EsType);
+            return _entityRepository.GetAll<ElasticUser>(EsType);
         }
 
-        public ElasticResult<User> Get(string guid)
+        public ElasticResult<ElasticUser> Get(string guid)
         {
-            return _entityRepository.Get<User>(EsType, guid);
+            return _entityRepository.Get<ElasticUser>(EsType, guid);
         }
     }
 }

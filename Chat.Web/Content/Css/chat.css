@@ -38,6 +38,8 @@ div.alert {
     height: 320px;
     margin: 5px;
     border: 1px solid #b1b1b1;
+    overflow: scroll;
+    overflow-x: hidden;
 }
 
 #new-message {
@@ -85,4 +87,31 @@ div.alert {
     padding: 3px;
     -ms-border-radius: 3px;
     border-radius: 3px;
+}
+
+.time-font {
+    font-size: 10px;
+}
+
+.message {
+    -ms-border-radius: 10px;
+    border-radius: 10px;
+    margin: 5px 10px;
+    padding: 5px;
+    max-width: 90%;
+    overflow-wrap: break-word;
+}
+
+.message-own {
+    float: left;
+    text-align: left;
+    border: 1px solid #99ccfc;
+    background-color: #c7e4fe;
+}
+
+.message-alien {
+    float: right;
+    text-align: left;
+    border: 1px solid #b6fc99;
+    background-color: #cefec7;
 }
