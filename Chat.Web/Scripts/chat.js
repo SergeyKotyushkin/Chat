@@ -142,7 +142,9 @@ function updateUsers(model, newUser) {
 
 /* on document ready */
 $(document).ready(function () {
-    
+
+    visibilityLoadingDiv(true);
+
     // create hub
     var chat = $.connection.chatHub;
 
@@ -229,7 +231,11 @@ $(document).ready(function () {
                 spinAllUsersSpinner(false);
             });
 
-            getAllChats(viewModel, function() {
+            getAllChats(viewModel, function () {
+                if (viewModel.chats().length === 1) {
+                    viewModel.currentChat(viewModel.chats()[0]);
+                }
+
                 spinAllChatsSpinner(false);
             });
         }, 1000);
@@ -280,7 +286,6 @@ $(document).ready(function () {
         viewModel.messages.push(result);
     };
 
-    visibilityLoadingDiv(true);
     setTimeout(function() {
         $.connection.hub.start()
             .done(function() {
