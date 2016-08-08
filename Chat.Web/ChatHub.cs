@@ -14,11 +14,13 @@ namespace Chat.Web
         private const string ServerErrorMessage = "Server Error";
 
         private readonly IUserRepository _userRepository;
+        private readonly IChatUserRepository _chatUserRepository;
 
 
-        public ChatHub(IUserRepository userRepository)
+        public ChatHub(IUserRepository userRepository, IChatUserRepository chatUserRepository)
         {
             _userRepository = userRepository;
+            _chatUserRepository = chatUserRepository;
         }
 
         #region Public Methods
@@ -48,7 +50,20 @@ namespace Chat.Web
                 return;
             }
 
-            // TODO: Update chats
+            #region Add current connection to all user's chats
+            
+            var chatUserElasticResult = _chatUserRepository.GetAllByUserGuid(user.Guid);
+            if (!elasticResult.Success || elasticResult.Value == null)
+            {
+                Clients.Caller.onLoginCaller(
+                    JsonConvert.SerializeObject(new { error = true, message = ServerErrorMessage }));
+                return;
+            }
+            
+            foreach (var chatUser in chatUserElasticResult.Value)
+                Groups.Add(Context.ConnectionId, chatUser.ChatGuid);
+            
+            #endregion
 
             user = elasticResult.Value;
             if (user.ConnectionIds.Count() == 1)
@@ -70,7 +85,16 @@ namespace Chat.Web
             if(!elasticResult.Success || elasticResult.Value == null)
                 return base.OnDisconnected(stopCalled);
             
-            // TODO: Update chats
+            #region Remove current connection from all user's chats
+
+            var chatUserElasticResult = _chatUserRepository.GetAllByUserGuid(user.Guid);
+            if (!elasticResult.Success || elasticResult.Value == null)
+                return base.OnDisconnected(stopCalled);
+
+            foreach (var chatUser in chatUserElasticResult.Value)
+                Groups.Remove(Context.ConnectionId, chatUser.ChatGuid);
+
+            #endregion
 
             // Alert others if you became offline
             var updatedUser = elasticResult.Value;
