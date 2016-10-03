@@ -63,8 +63,8 @@
                         </div>
                     </div>
                     <div data-bind="if: currentChat() != null">
-                        <div id="chat-messages" data-bind="foreach: { data: messages, afterRender: afterRenderMessages }">
-                            <div class="clearfix">
+                        <div id="chat-messages" data-bind="css: $root.isMssagesLoading() ? 'is-loading': '', foreach: { data: messages }, event: { scroll: onChatMessagesScroll }">
+                            <div class=" clearfix">
                                 <div data-bind="attr: { 'class': 'message ' + ($root.currentUser().Guid === UserGuid ? 'message-own' : 'message-alien')}">
                                     <div>
                                         <strong data-bind="text: UserName"></strong>
@@ -75,6 +75,9 @@
                                     <span data-bind="text: Text"></span>
                                 </div>
                             </div>
+                        </div>
+                        <div id="messages-loading" data-bind="visible: $root.isMssagesLoading()">
+                            <i class="fa fa-spinner fa-spin fa-3x fa-fw"></i>
                         </div>
                         <div id="new-message">
                             <input class="btn btn-default" type="button" value="Send" data-bind="click: sendMessageClick, enable: messageText() != null && messageText().length" />

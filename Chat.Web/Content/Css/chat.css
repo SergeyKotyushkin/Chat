@@ -115,3 +115,20 @@ div.alert {
     border: 1px solid #b6fc99;
     background-color: #cefec7;
 }
+
+#messages-loading {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    -webkit-transform: translateX(-50%) translateY(-50%);
+    -moz-transform: translateX(-50%) translateY(-50%);
+    -ms-transform: translateX(-50%) translateY(-50%);
+    -o-transform: translateX(-50%) translateY(-50%);
+    transform: translateX(-50%) translateY(-50%);
+}
+
+.is-loading {
+    pointer-events: none;
+    -ms-opacity: 0.4;
+    opacity: 0.4;
+}

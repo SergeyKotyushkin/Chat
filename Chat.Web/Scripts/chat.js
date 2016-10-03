@@ -104,6 +104,39 @@ function getAllChats(model, callback) {
     });
 }
 
+function getMessages(model, callback) {
+    var user = model.currentUser();
+    model.isMssagesLoading(true);
+    $.post("Chat/GetMessages",
+        {
+            userGuid: user.Guid,
+            chatGuid: model.currentChat().Guid,
+            lastSendTime: (model.messages() != null && model.messages().length
+                ? new Date(model.messages()[0].SendTime).getTime()
+                : Date.now()),
+            count: model.messagesCount
+        },
+        function(json) {
+            var result = JSON.parse(json);
+
+            if (result.error != null && result.error) {
+                setErrorMessage(model, result.message);
+                callback(model.messagesCount + 1);
+                return;
+            }
+
+            for (var i = 0; i < result.length; i++) {
+                model.messages.unshift(result[i]);
+            }
+
+            callback(result.length);
+        })
+        .always(function () {
+            model.isMssagesLoading(false);
+        }
+    );
+}
+
 function createChat(model, server) {
     visibilityErrorDiv(false);
     visibilitySuccessDiv(false);
@@ -203,10 +236,37 @@ $(document).ready(function () {
             self.messageText(null);
         }
 
-        self.afterRenderMessages = function(elements, data) {
-            if (this.foreach()[this.foreach().length - 1] === data)
-                $("#chat-messages").animate({ scrollTop: $("#chat-messages")[0].scrollHeight }, "slow");
+        self.onChatMessagesScroll = function(data, event) {
+            var elem = event.target;
+            var prevScrollHeight = $(elem)[0].scrollHeight;
+            if (self.allMessagesLoaded() === false && self.isMssagesLoading() === false && $(elem)[0].scrollTop === 0) {
+                getMessages(self, function(loadedCount) {
+                    if (loadedCount < self.messagesCount)
+                        self.allMessagesLoaded(true);
+
+                    var newScrollHeight = $(elem)[0].scrollHeight;
+                    $(elem).scrollTop(newScrollHeight - prevScrollHeight);
+                    $(elem).animate({ scrollTop: newScrollHeight - prevScrollHeight - $(elem).height() / 2 }, 600);
+                });
+            }
         }
+
+        self.currentChat.subscribe(function(newValue) {
+            if (newValue == null)
+                return;
+
+            getMessages(self, function () {
+                $("#chat-messages").animate({ scrollTop: $("#chat-messages")[0].scrollHeight }, "slow");
+                self.needMessagesScrollToBottom(false);
+            });
+        });
+
+
+        self.needMessagesScrollToBottom = ko.observable(false);
+        self.messagesCount = 10;
+
+        self.isMssagesLoading = ko.observable(false);
+        self.allMessagesLoaded = ko.observable(false);
     }
 
     var viewModel = new chatViewModel();
@@ -222,6 +282,7 @@ $(document).ready(function () {
         }
         
         viewModel.currentUser(result);
+        viewModel.needMessagesScrollToBottom(true);
 
         // get all users
         spinAllUsersSpinner(true);
@@ -283,6 +344,7 @@ $(document).ready(function () {
             return;
         }
 
+        viewModel.needMessagesScrollToBottom(true);
         viewModel.messages.push(result);
     };
 

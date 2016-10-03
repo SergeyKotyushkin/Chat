@@ -1,4 +1,5 @@
-﻿using Chat.Logic.Elastic.Contracts;
+﻿using System;
+using Chat.Logic.Elastic.Contracts;
 using Chat.Logic.Elastic.Models;
 using Chat.Logic.StructureMap;
 using Chat.Models;
@@ -20,10 +21,20 @@ namespace Chat.Logic.Elastic
             return _entityRepository.Add(EsType, message);
         }
 
-        public ElasticResult<ElasticMessage[]> GetAllByChatGuid(string guid)
+        public ElasticResult<ElasticMessage[]> GetAllByChatGuid(string guid, DateTime lastSendTime, int count)
         {
             var searchDescriptor = new SearchDescriptor<ElasticMessage>().Query(
-                q => q.Term(t => t.Field(f => f.ChatGuid).Value(guid))).Index(_elasticRepository.EsIndex).Type(EsType);
+                q =>
+                    q.Bool(
+                        b =>
+                            b.Must(
+                                m =>
+                                    m.Term(fields => fields.Field(f => f.ChatGuid).Value(guid)) &&
+                                    m.DateRange(fields => fields.Field(f => f.SendTime).LessThan(lastSendTime)))))
+                .Index(_elasticRepository.EsIndex)
+                .Type(EsType)
+                .Size(count)
+                .Sort(s => s.Field(sf => sf.Field(f => f.SendTime).Descending()));
 
             var response = _elasticRepository.ExecuteSearchRequest(searchDescriptor);
 

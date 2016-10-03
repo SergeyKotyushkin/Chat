@@ -1,4 +1,5 @@
-﻿using Chat.Logic.Elastic.Models;
+﻿using System;
+using Chat.Logic.Elastic.Models;
 using Chat.Models;
 
 namespace Chat.Logic.Elastic.Contracts
@@ -7,6 +8,6 @@ namespace Chat.Logic.Elastic.Contracts
     {
         ElasticResult<ElasticMessage> Add(string chatGuid, ElasticUser user, string text);
 
-        ElasticResult<ElasticMessage[]> GetAllByChatGuid(string guid);
+        ElasticResult<ElasticMessage[]> GetAllByChatGuid(string guid, DateTime lastSendTime, int count);
     }
 }

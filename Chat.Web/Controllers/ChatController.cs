@@ -18,14 +18,16 @@ namespace Chat.Web.Controllers
         private readonly IUserRepository _userRepository;
         private readonly IChatRepository _chatRepository;
         private readonly IChatUserRepository _chatUserRepository;
+        private readonly IMessageRepository _messageRepository;
 
 
         public ChatController(IUserRepository userRepository, IChatRepository chatRepository,
-            IChatUserRepository chatUserRepository)
+            IChatUserRepository chatUserRepository, IMessageRepository messageRepository)
         {
             _userRepository = userRepository;
             _chatRepository = chatRepository;
             _chatUserRepository = chatUserRepository;
+            _messageRepository = messageRepository;
         }
 
 
@@ -102,6 +104,22 @@ namespace Chat.Web.Controllers
                 return JsonConvert.SerializeObject(new {error = true, code = 2, message = chatUserElasticResult.Message});
 
             return JsonConvert.SerializeObject(new {error = false});
+        }
+
+        [HttpPost]
+        public string GetMessages(string userGuid, string chatGuid, double lastSendTime, int count)
+        {
+            // Check current user
+            var userElasticResult = _userRepository.Get(userGuid);
+            if (!userElasticResult.Success || userElasticResult.Value == null)
+                return JsonConvert.SerializeObject(new { error = true, message = ReloginMessage });
+
+            var date = new DateTime(1970, 1, 1, 0, 0, 0, 0).AddMilliseconds(lastSendTime);
+            var messageslasticResult = _messageRepository.GetAllByChatGuid(chatGuid, date, count);
+
+            return !messageslasticResult.Success
+                ? JsonConvert.SerializeObject(new List<ElasticChat>())
+                : JsonConvert.SerializeObject(messageslasticResult.Value.OrderByDescending(u => u.SendTime));
         }
 
         #endregion
