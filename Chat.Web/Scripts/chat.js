@@ -236,6 +236,13 @@ $(document).ready(function () {
             self.messageText(null);
         }
 
+        self.newMessageTextKeyUp = function (d, e) {
+            // send message on enter key
+            if (e.keyCode === 13) {
+                self.sendMessageClick();
+            }
+        }
+
         self.afterRenderMessages = function (elements, data) {
             if (this.foreach()[this.foreach().length - 1] === data && self.isMssagesLoading() === false) {
                 self.isMssagesLoading(true);

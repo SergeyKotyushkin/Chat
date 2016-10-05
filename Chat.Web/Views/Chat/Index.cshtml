@@ -82,7 +82,7 @@
                         <div id="new-message">
                             <input class="btn btn-default" type="button" value="Send" data-bind="click: sendMessageClick, enable: messageText() != null && messageText().length" />
                             <div>
-                                <input class="form-control" data-bind="textinput: messageText"/>
+                                <input class="form-control" data-bind="textinput: messageText, event: {keyup: newMessageTextKeyUp}" />
                             </div>
                         </div>
                     </div>
