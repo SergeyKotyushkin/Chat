@@ -236,6 +236,19 @@ $(document).ready(function () {
             self.messageText(null);
         }
 
+        self.afterRenderMessages = function (elements, data) {
+            if (this.foreach()[this.foreach().length - 1] === data && self.isMssagesLoading() === false) {
+                self.isMssagesLoading(true);
+                $("#chat-messages").animate({ scrollTop: $("#chat-messages")[0].scrollHeight }, {
+                    duration: 500,
+                    complete: function() {
+                        self.isMssagesLoading(false);
+                        self.needMessagesScrollToBottom(true);
+                    }
+                });
+            }
+        }
+
         self.onChatMessagesScroll = function(data, event) {
             var elem = event.target;
             var prevScrollHeight = $(elem)[0].scrollHeight;

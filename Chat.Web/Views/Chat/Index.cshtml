@@ -63,7 +63,7 @@
                         </div>
                     </div>
                     <div data-bind="if: currentChat() != null">
-                        <div id="chat-messages" data-bind="css: $root.isMssagesLoading() ? 'is-loading': '', foreach: { data: messages }, event: { scroll: onChatMessagesScroll }">
+                        <div id="chat-messages" data-bind="css: $root.isMssagesLoading() ? 'is-loading': '', foreach: { data: messages, afterRender: afterRenderMessages }, event: { scroll: onChatMessagesScroll }">
                             <div class=" clearfix">
                                 <div data-bind="attr: { 'class': 'message ' + ($root.currentUser().Guid === UserGuid ? 'message-own' : 'message-alien')}">
                                     <div>
