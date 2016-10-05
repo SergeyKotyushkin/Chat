@@ -404,8 +404,10 @@ $(document).ready(function () {
             return;
         }
 
-        viewModel.needMessagesScrollToBottom(true);
-        viewModel.messages.push(result);
+        if (result.chatGuid === viewModel.currentChat().Guid) {
+            viewModel.needMessagesScrollToBottom(true);
+            viewModel.messages.push(result.message);
+        }
     };
 
     chat.client.onSearchUsersForAddUsersToChatCaller = function(json) {

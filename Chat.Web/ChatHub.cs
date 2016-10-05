@@ -142,8 +142,8 @@ namespace Chat.Web
                 return;
             }
 
-            var message = JsonConvert.SerializeObject(messageElasticResult.Value);
-            Clients.Group(chatGuid).onSendMessageOthers(message);
+            Clients.Group(chatGuid)
+                .onSendMessageOthers(JsonConvert.SerializeObject(new {message = messageElasticResult.Value, chatGuid}));
         }
 
         public void SearchUsersForAddUsersToChat(string userName, string userGuid, string chatGuid)
