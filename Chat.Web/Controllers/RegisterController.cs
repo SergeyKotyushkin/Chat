@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text.RegularExpressions;
 using System.Web.Mvc;
 using Chat.Logic.Elastic.Contracts;
 using Chat.Web.Models;
@@ -7,6 +8,7 @@ namespace Chat.Web.Controllers
 {
     public class RegisterController : Controller
     {
+        private readonly Regex loginRegex = new Regex(@"[^a-zA-Z0-9 ]+");
         private readonly IUserRepository _userRepository;
 
 
@@ -31,6 +33,10 @@ namespace Chat.Web.Controllers
                 return View(RegisterViewModel.ErrorMessage("You should fill all the fields"));
 
             var login = model.Login.Trim();
+
+            if(loginRegex.IsMatch(login))
+                return View(RegisterViewModel.ErrorMessage("User Name may contain only letters, digits and white spaces"));
+
             var password = model.Password.Trim();
             var passwordRepeat = model.PasswordRepeat.Trim();
 

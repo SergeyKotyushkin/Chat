@@ -59,3 +59,11 @@
 .pointered {
     cursor: pointer;
 }
+
+.dropdown-menu {
+    margin: 0;
+}
+
+.dropdown:hover .dropdown-menu {
+    display: block;
+}

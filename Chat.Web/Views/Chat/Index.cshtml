@@ -48,6 +48,17 @@
             <div id="chat-panel" class="panel panel-default">
                 <div class="panel-heading">
                     <div class="h4 panel-title">
+                        <div class="pull-left dropdown">
+                            <div class="pointered dropdown-toggle" data-toggle="dropdown" data-bind="if: currentChat() != null">
+                                <i class="fa fa-cog"></i>
+                            </div>
+                            <ul class="dropdown-menu">
+                                <li><a class="pointered" data-toggle="modal" data-target="#add-user-modal">Add User</a></li>
+                                <li><a href="#">CSS</a></li>
+                                <li><a href="#">JavaScript</a></li>
+                            </ul>
+                        </div>
+
                         <span data-bind="text: currentChat() == null ? 'Chat is not chosen' : currentChat().Name"></span>
                         <div class="pull-right pointered" data-bind="if: currentChat() != null">
                             <i class="fa fa-times" data-bind="click: closeChatClick"></i>
@@ -65,14 +76,21 @@
                     <div data-bind="if: currentChat() != null">
                         <div id="chat-messages" data-bind="css: $root.isMssagesLoading() ? 'is-loading': '', foreach: { data: messages, afterRender: afterRenderMessages }, event: { scroll: onChatMessagesScroll }">
                             <div class=" clearfix">
-                                <div data-bind="attr: { 'class': 'message ' + ($root.currentUser().Guid === UserGuid ? 'message-own' : 'message-alien')}">
-                                    <div>
-                                        <strong data-bind="text: UserName"></strong>
+                                <div data-bind="if: !$data.IsAdminMessage">
+                                    <div data-bind="attr: { 'class': 'message ' + ($root.currentUser().Guid === UserGuid ? 'message-own' : 'message-alien')}">
+                                        <div>
+                                            <strong data-bind="text: UserName"></strong>
+                                        </div>
+                                        <div class="time-font">
+                                            <em data-bind="text: SendTimeDisplay"></em>
+                                        </div>
+                                        <span data-bind="text: Text"></span>
                                     </div>
-                                    <div class="time-font">
-                                        <em data-bind="text: SendTimeDisplay"></em>
+                                </div>
+                                <div data-bind="if: $data.IsAdminMessage">
+                                    <div class="text-center">
+                                        <i data-bind="text: Text"></i>
                                     </div>
-                                    <span data-bind="text: Text"></span>
                                 </div>
                             </div>
                         </div>
@@ -121,13 +139,19 @@
                 </div>
                 <div id="users-collapse" class="panel-collapse collapse in">
                     <div class="panel-body">
-                        <ul data-bind="foreach: users">
-                            <li>
-                                <span data-bind="text: UserName"></span>
-                                <span class="online" data-bind="visible: IsOnline">Online</span>
-                                <span class="offline" data-bind="visible: !IsOnline">Offline</span>
-                            </li>
-                        </ul>
+                        <div class="div-with-vertical-scroll" data-bind="foreach: users">
+                            <div class="row">
+                                <div class="col-xs-12">
+                                    <span data-bind="text: UserName"></span>
+                                    <label data-bind="if: IsOnline">
+                                        <span class="online">Online</span>
+                                    </label>
+                                    <label data-bind="if: !IsOnline">
+                                        <span class="offline">Offline</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -148,6 +172,88 @@
                             </div>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modals -->
+<div data-bind="if: $root.currentChat != null">
+    <div id="add-user-modal" class="modal fade" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">Choose User for chat</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-xs-12">
+                            <h4>Enter User name:</h4>
+                        </div>
+                        <div class="col-xs-12">
+                            <div class="row">
+                                <div class="col-xs-6">
+                                    <input class="form-control" data-bind="textInput: addUserViewModel().userName" />
+                                </div>
+                                <div class="col-xs-3">
+                                    <div class="form-control btn btn-default" data-bind="click: addUserViewModel().searchClick">Search</div>
+                                </div>
+                            </div>
+                            <div class="row" data-bind="if: addUserViewModel().errorUserNameLengthMessageShow()">
+                                <div class="col-xs-12 has-error">
+                                    <label class="control-label">
+                                        <i>User name must include at least 2 symbols</i>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="add-user-search-results-container" class="col-xs-12">
+                            <div class="row">
+                                <div class="col-xs-12">
+                                    <h4>Search results</h4>
+                                </div>
+                                <div class="col-xs-12">
+                                    <div id="add-user-search-results">
+                                        <div data-bind="if: addUserViewModel().searchResults().length">
+                                            <div class="row" data-bind="foreach: addUserViewModel().searchResults">
+                                                <div class="col-xs-12">
+                                                    <div class="row">
+                                                        <div class="col-xs-1">
+                                                            <div class="has-success" data-bind="if: $parent.addUserViewModel().selectedUsers().includes(Guid)">
+                                                                <label class="control-label" title="Remove" data-bind="click: $parent.addUserViewModel().selectUserClick">
+                                                                    <i class="fa fa-check pointered"></i>
+                                                                </label>
+                                                            </div>
+                                                            <div data-bind="if: !$parent.addUserViewModel().selectedUsers().includes(Guid)">
+                                                                <label class="control-label not-added-user" title="Add" data-bind="click: $parent.addUserViewModel().selectUserClick">
+                                                                    <i class="fa fa-plus pointered"></i>
+                                                                </label>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-xs-11 pointered">
+                                                            <span data-bind="html: UserName, attr: {'data-users-guid': Guid}, click: $parent.addUserViewModel().selectUserClick"></span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div data-bind="if: !addUserViewModel().searchResults().length">
+                                            <i>No results..</i>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-xs-12" data-bind="if: addUserViewModel().selectedUsers().length">
+                                    <div class="btn btn-primary" data-bind="click: addUserViewModel().commitClick">Commit</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>

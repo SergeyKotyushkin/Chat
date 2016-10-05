@@ -18,5 +18,9 @@ namespace Chat.Logic.Elastic.Contracts
         ElasticResult<ElasticUser[]> GetAll();
 
         ElasticResult<ElasticUser> Get(string guid);
+
+        ElasticResult<ElasticUser[]> SearchByUserName(string userName);
+
+        ElasticResult<ElasticUser[]> GetAllByGuids(params string[] userGuids);
     }
 }

@@ -8,5 +8,7 @@ namespace Chat.Logic.Elastic.Contracts
         ElasticResult<ElasticChatUser> Add(string chatGuid, string userGuid);
 
         ElasticResult<ElasticChatUser[]> GetAllByUserGuid(string userGuid);
+
+        ElasticResult<ElasticChatUser[]> GetAllByChatGuid(string chatGuid);
     }
 }

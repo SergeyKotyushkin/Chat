@@ -73,20 +73,22 @@ div.alert {
     margin-bottom: 5px;    
 }
 
-.online {
+label span.online {
     background-color: #228b22;
     color: white;
     padding: 3px;
     -ms-border-radius: 3px;
     border-radius: 3px;
+    font-weight: normal;
 }
 
-.offline {
+label span.offline {
     background-color: #a52a2a;
     color: white;
     padding: 3px;
     -ms-border-radius: 3px;
     border-radius: 3px;
+    font-weight: normal;
 }
 
 .time-font {
@@ -131,4 +133,30 @@ div.alert {
     pointer-events: none;
     -ms-opacity: 0.4;
     opacity: 0.4;
+}
+
+#add-user-search-results {
+    max-height: 100px;
+    margin-bottom: 5px;
+    padding: 5px;
+    overflow: auto;
+    overflow-x: hidden;
+}
+
+#add-user-search-results-container {
+    margin-top: 10px;
+}
+
+.not-added-user {
+    color: #787474;
+}
+
+.not-added-user:hover {
+    color: #943518;
+}
+
+.div-with-vertical-scroll {
+    overflow: auto;
+    overflow-x: hidden;
+    height: 100%;
 }

@@ -160,7 +160,9 @@ function createChat(model, server) {
         }
 
         server.createChat(name, model.currentUser().Guid);
-        getAllChats(model, model.currentUser());
+        getAllChats(model, function() {
+            spinAllChatsSpinner(false);
+        });
     });
 }
 
@@ -180,6 +182,43 @@ $(document).ready(function () {
 
     // create hub
     var chat = $.connection.chatHub;
+
+    function addUserViewModel(parent) {
+        var self = this;
+
+        self.userName = ko.observable("");
+        self.errorUserNameLengthMessageShow = ko.observable(false);
+        
+        self.searchResults = ko.observableArray([]);
+        self.selectedUsers = ko.observableArray([]);
+
+        self.searchClick = function () {
+            self.errorUserNameLengthMessageShow(false);
+            self.userName(self.userName().trim());
+
+            if (self.userName().length < 2) {
+                self.errorUserNameLengthMessageShow(true);
+                return;
+            }
+
+            chat.server.searchUsersForAddUsersToChat(self.userName(), parent.currentUser().Guid, parent.currentChat().Guid);
+        }
+
+        self.selectUserClick = function(user) {
+            if (!self.selectedUsers().includes(user.Guid)) {
+                self.selectedUsers.push(user.Guid);
+            } else {
+                self.selectedUsers.remove(user.Guid);
+            }
+        }
+
+        self.commitClick = function() {
+            if (!self.selectedUsers().length)
+                return;
+
+            chat.server.addUsersForAddUsersToChat(JSON.stringify(self.selectedUsers()), parent.currentUser().Guid, parent.currentChat().Guid);
+        }
+    }
 
     function chatViewModel() {
         var self = this;
@@ -281,6 +320,7 @@ $(document).ready(function () {
             });
         });
 
+        self.addUserViewModel = ko.observable(new addUserViewModel(self));
 
         self.needMessagesScrollToBottom = ko.observable(false);
         self.messagesCount = 10;
@@ -367,6 +407,39 @@ $(document).ready(function () {
         viewModel.needMessagesScrollToBottom(true);
         viewModel.messages.push(result);
     };
+
+    chat.client.onSearchUsersForAddUsersToChatCaller = function(json) {
+        var result = JSON.parse(json);
+
+        if (result.error != null && result.error) {
+            setErrorMessage(viewModel, result.message);
+            return;
+        }
+
+        viewModel.addUserViewModel().searchResults.removeAll();
+        result.forEach(function(searchResult) {
+            viewModel.addUserViewModel().searchResults.push(searchResult);
+        });
+    }
+
+    chat.client.onAddUsersForAddUsersToChatCaller = function(json) {
+        var result = JSON.parse(json);
+
+        if (result.error != null && result.error) {
+            setErrorMessage(viewModel, result.message);
+            return;
+        }
+
+        viewModel.userName("");
+        viewModel.errorUserNameLengthMessageShow(false);
+        viewModel.searchResults.removeAll();
+        viewModel.selectedUsers.removeAll();
+        $("#add-user-modal").modal("hide");
+    }
+
+    chat.client.onAddUsersForAddUsersToChatNewUsers = function () {
+        viewModel.updateChatsClick();
+    }
 
     setTimeout(function() {
         $.connection.hub.start()

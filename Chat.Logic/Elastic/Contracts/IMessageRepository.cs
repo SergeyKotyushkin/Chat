@@ -8,6 +8,8 @@ namespace Chat.Logic.Elastic.Contracts
     {
         ElasticResult<ElasticMessage> Add(string chatGuid, ElasticUser user, string text);
 
+        ElasticResult<ElasticMessage> AddAdminMessage(string chatGuid, ElasticUser user, string newUserName);
+
         ElasticResult<ElasticMessage[]> GetAllByChatGuid(string guid, DateTime lastSendTime, int count);
     }
 }

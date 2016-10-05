@@ -9,6 +9,7 @@ namespace Chat.Logic.Elastic
     public class UserRepository : IUserRepository
     {
         private const string EsType = "user";
+        private const string UserNameRegexpFormatString = "[a-zA-Z0-9 ]*{0}[a-zA-Z0-9 ]*";
 
         private readonly IElasticRepository _elasticRepository = StructureMapFactory.Resolve<IElasticRepository>();
         private readonly IEntityRepository _entityRepository = StructureMapFactory.Resolve<IEntityRepository>();
@@ -90,6 +91,27 @@ namespace Chat.Logic.Elastic
         public ElasticResult<ElasticUser> Get(string guid)
         {
             return _entityRepository.Get<ElasticUser>(EsType, guid);
+        }
+
+        public ElasticResult<ElasticUser[]> SearchByUserName(string userName)
+        {
+            var searchDescriptor = new SearchDescriptor<ElasticUser>().Query(
+                q =>
+                    q.Regexp(
+                        r =>
+                            r.Field(fields => fields.UserName)
+                                .Value(string.Format(UserNameRegexpFormatString, userName))))
+                .Index(_elasticRepository.EsIndex)
+                .Type(EsType);
+
+            var response = _elasticRepository.ExecuteSearchRequest(searchDescriptor);
+
+            return _entityRepository.GetEntitiesFromElasticResponse(response);
+        }
+
+        public ElasticResult<ElasticUser[]> GetAllByGuids(params string[] userGuids)
+        {
+            return _entityRepository.GetByGuids<ElasticUser>(EsType, userGuids);
         }
     }
 }

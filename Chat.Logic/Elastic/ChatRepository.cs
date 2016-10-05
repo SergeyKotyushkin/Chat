@@ -23,6 +23,11 @@ namespace Chat.Logic.Elastic
             return !response.Success ? response : _entityRepository.Add(EsType, chat);
         }
 
+        public ElasticResult<ElasticChat> Get(string chatGuid)
+        {
+            return _entityRepository.Get<ElasticChat>(EsType, chatGuid);
+        }
+
         public ElasticResult<ElasticChat[]> GetByGuids(params string[] chatGuids)
         {
             return _entityRepository.GetByGuids<ElasticChat>(EsType, chatGuids);

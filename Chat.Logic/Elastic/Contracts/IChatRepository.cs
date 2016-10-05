@@ -7,6 +7,8 @@ namespace Chat.Logic.Elastic.Contracts
     {
         ElasticResult<ElasticChat> Add(string name, string creatorGuid);
 
+        ElasticResult<ElasticChat> Get(string chatGuid);
+
         ElasticResult<ElasticChat[]> GetByGuids(params string[] chatGuids);
     }
 }

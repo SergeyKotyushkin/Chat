@@ -36,6 +36,18 @@ namespace Chat.Logic.Elastic
             return _entityRepository.GetEntitiesFromElasticResponse(response);
         }
 
+        public ElasticResult<ElasticChatUser[]> GetAllByChatGuid(string chatGuid)
+        {
+            var searchDescriptor = new SearchDescriptor<ElasticChatUser>()
+                .Query(q => q.Term(t => t.Field(f => f.ChatGuid).Value(chatGuid)))
+                .Index(_elasticRepository.EsIndex)
+                .Type(EsType);
+
+            var response = _elasticRepository.ExecuteSearchRequest(searchDescriptor);
+
+            return _entityRepository.GetEntitiesFromElasticResponse(response);
+        }
+
         #endregion
 
 

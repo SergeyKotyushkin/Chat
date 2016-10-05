@@ -13,18 +13,21 @@ namespace Chat.Web
         private const string CookieName = "chat_secret";
         private const string ServerErrorMessage = "Server Error";
         private const string UserErrorMessage = "Please relogin to chat. Your personal data is incorrect.";
+        private const string ChatErrorMessage = "Invalid chat! Please refresh the page";
 
         private readonly IUserRepository _userRepository;
         private readonly IChatUserRepository _chatUserRepository;
         private readonly IMessageRepository _messageRepository;
+        private readonly IChatRepository _chatRepository;
 
 
         public ChatHub(IUserRepository userRepository, IChatUserRepository chatUserRepository,
-            IMessageRepository messageRepository)
+            IMessageRepository messageRepository, IChatRepository chatRepository)
         {
             _userRepository = userRepository;
             _chatUserRepository = chatUserRepository;
             _messageRepository = messageRepository;
+            _chatRepository = chatRepository;
         }
 
         #region Public Methods
@@ -141,6 +144,114 @@ namespace Chat.Web
 
             var message = JsonConvert.SerializeObject(messageElasticResult.Value);
             Clients.Group(chatGuid).onSendMessageOthers(message);
+        }
+
+        public void SearchUsersForAddUsersToChat(string userName, string userGuid, string chatGuid)
+        {
+            var userElasticResult = _userRepository.Get(userGuid);
+            if (!userElasticResult.Success)
+            {
+                Clients.Caller.onSearchUsersForAddUsersToChatCaller(
+                    JsonConvert.SerializeObject(new {error = true, message = UserErrorMessage}));
+                return;
+            }
+
+            var chatElasticResult = _chatRepository.Get(chatGuid);
+            if (!chatElasticResult.Success)
+            {
+                Clients.Caller.onSearchUsersForAddUsersToChatCaller(
+                    JsonConvert.SerializeObject(new {error = true, message = ChatErrorMessage}));
+                return;
+            }
+
+            var searchElasticResult = _userRepository.SearchByUserName(userName);
+            if (!searchElasticResult.Success)
+            {
+                Clients.Caller.onSearchUsersForAddUsersToChatCaller(
+                    JsonConvert.SerializeObject(new {error = true, message = ServerErrorMessage}));
+                return;
+            }
+
+            var users = searchElasticResult.Value;
+
+            var chatUserElasticResult = _chatUserRepository.GetAllByChatGuid(chatGuid);
+            if (!chatUserElasticResult.Success)
+            {
+                Clients.Caller.onSearchUsersForAddUsersToChatCaller(
+                    JsonConvert.SerializeObject(new {error = true, message = ServerErrorMessage}));
+                return;
+            }
+
+            var chatUsers = chatUserElasticResult.Value;
+
+            var searchedUsers = users.Where(u => chatUsers.All(cu => cu.UserGuid != u.Guid))
+                .Select(u => new {u.Guid, u.UserName})
+                .ToArray();
+
+            Clients.Caller.onSearchUsersForAddUsersToChatCaller(JsonConvert.SerializeObject(searchedUsers));
+        }
+
+        public void AddUsersForAddUsersToChat(string jsonUsers, string userGuid, string chatGuid)
+        {
+            var userElasticResult = _userRepository.Get(userGuid);
+            if (!userElasticResult.Success)
+            {
+                Clients.Caller.onAddUsersForAddUsersToChatCaller(
+                    JsonConvert.SerializeObject(new { error = true, message = UserErrorMessage }));
+                return;
+            }
+            var user = userElasticResult.Value;
+
+            var usersGuids = JsonConvert.DeserializeObject<string[]>(jsonUsers);
+
+            var usersElasticResult = _userRepository.GetAllByGuids(usersGuids);
+            if (!usersElasticResult.Success)
+            {
+                Clients.Caller.onAddUsersForAddUsersToChatCaller(
+                    JsonConvert.SerializeObject(new { error = true, message = ServerErrorMessage }));
+                return;
+            }
+            var users = usersElasticResult.Value;
+
+            var chatUserElasticResult = _chatUserRepository.GetAllByChatGuid(chatGuid);
+            if (!chatUserElasticResult.Success)
+            {
+                Clients.Caller.onAddUsersForAddUsersToChatCaller(
+                    JsonConvert.SerializeObject(new { error = true, message = ServerErrorMessage }));
+                return;
+            }
+
+            var chatUsers = chatUserElasticResult.Value;
+            
+            var newUsers = users.Where(u => chatUsers.All(cu => cu.UserGuid != u.Guid)).ToArray();
+
+            foreach (var newUser in newUsers)
+            {
+                var elasticResult = _chatUserRepository.Add(chatGuid, newUser.Guid);
+                if (!elasticResult.Success)
+                {
+                    Clients.Caller.onAddUsersForAddUsersToChatCaller(
+                        JsonConvert.SerializeObject(new { error = true, message = ServerErrorMessage }));
+                    return;
+                }
+
+                var messageElasticResult = _messageRepository.AddAdminMessage(chatGuid, user, newUser.UserName);
+                if (!messageElasticResult.Success)
+                {
+                    Clients.Caller.onAddUsersForAddUsersToChatCaller(
+                        JsonConvert.SerializeObject(new { error = true, message = ServerErrorMessage }));
+                    return;
+                }
+
+                var message = JsonConvert.SerializeObject(messageElasticResult.Value);
+                Clients.Group(chatGuid).onSendMessageOthers(message);
+
+                foreach (var connectionId in newUser.ConnectionIds)
+                    Groups.Add(connectionId, chatGuid);
+            }
+            
+            var newUsersConnectionIds = newUsers.SelectMany(u => u.ConnectionIds).ToArray();
+            Clients.Clients(newUsersConnectionIds).onAddUsersForAddUsersToChatNewUsers();
         }
 
         #endregion
