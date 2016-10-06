@@ -392,7 +392,10 @@ $(document).ready(function () {
         }
 
         setSuccessMessage(viewModel, "New chat was created successfuly");
-        viewModel.updateChatsClick();
+        viewModel.chats.push(result);
+        viewModel.chats.sort(function (chat1, chat2) {
+            return chat1.Name.localeCompare(chat2.Name);
+        });
     };
 
     chat.client.onSendMessageCaller = function (json) {

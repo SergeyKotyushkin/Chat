@@ -141,7 +141,7 @@ namespace Chat.Web
             foreach (var connectionId in user.ConnectionIds)
                 Groups.Add(connectionId, chat.Guid);
 
-            Clients.Clients(user.ConnectionIds.ToArray()).OnCreateChatCaller(JsonConvert.SerializeObject(new {}));
+            Clients.Clients(user.ConnectionIds.ToArray()).OnCreateChatCaller(JsonConvert.SerializeObject(chat));
         }
 
         public void SendMessage(string text, string userGuid, string chatGuid)
