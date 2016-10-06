@@ -33,14 +33,20 @@
             </div>
         </div>
     </div>
-    <div id="alert-error-div" class="row hidden" data-bind="if: hasErrorMessage()">
+    <div id="alert-error-div" class="row hidden alert-div" data-bind="if: hasErrorMessage()">
         <div class="hor-center-parent col-xs-12">
-            <div class="alert alert-danger" data-bind="html: errorMessage()"></div>
+            <div class="alert alert-danger">
+                <div class="pull-right close" data-bind="click: closeMessageClick">&times;</div>
+                <span data-bind="html: errorMessage()"></span>
+            </div>
         </div>
     </div>
-    <div id="alert-success-div" class="row hidden" data-bind="if: hasSuccessMessage()">
+    <div id="alert-success-div" class="row hidden alert-div" data-bind="if: hasSuccessMessage()">
         <div class="hor-center-parent col-xs-12">
-            <div class="alert alert-success" data-bind="html: successMessage()"></div>
+            <div class="alert alert-success">
+                <div class="pull-right close" data-bind="click: closeMessageClick">&times;</div>
+                <span data-bind="html: successMessage()"></span>
+            </div>
         </div>
     </div>
     <div id="chat-div" class="row" data-bind="if: currentUser() != null">

@@ -228,6 +228,11 @@ $(document).ready(function () {
         self.currentChat = ko.observable(null);
         self.currentUser = ko.observable(null);
 
+        self.closeMessageClick = function (item, event) {
+            var alertContainer = $(event.target).closest(".alert-div");
+            $(alertContainer).toggle();
+        }
+
         self.hasErrorMessage = ko.observable(false);
         self.hasSuccessMessage = ko.observable(false);
 
