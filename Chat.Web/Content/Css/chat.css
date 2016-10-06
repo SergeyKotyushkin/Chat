@@ -160,3 +160,7 @@ label span.offline {
     overflow-x: hidden;
     height: 100%;
 }
+
+#create-chat-button:hover {
+    color: #228b22;
+}

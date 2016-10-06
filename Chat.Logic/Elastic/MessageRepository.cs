@@ -28,8 +28,6 @@ namespace Chat.Logic.Elastic
                 string.Format(NewUserInChatFormatString, newUserName), true);
 
             return _entityRepository.Add(EsType, message);
-
-            throw new NotImplementedException();
         }
 
         public ElasticResult<ElasticMessage[]> GetAllByChatGuid(string guid, DateTime lastSendTime, int count)

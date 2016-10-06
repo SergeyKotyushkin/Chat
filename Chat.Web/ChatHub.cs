@@ -116,9 +116,32 @@ namespace Chat.Web
                 return;
             }
 
+            var user = userElasticResult.Value;
+
+            var chatElasticResult = _chatRepository.Add(name, guid);
+            if (!chatElasticResult.Success)
+            {
+                Clients.Caller.onCreateChatCaller(
+                    JsonConvert.SerializeObject(new { error = true, message = chatElasticResult.Message }));
+                return;
+            }
+
+            var chat = chatElasticResult.Value;
+
+            // Add User to new Chat
+            var chatUserElasticResult = _chatUserRepository.Add(chat.Guid, user.Guid);
+            if (!chatUserElasticResult.Success)
+            {
+                Clients.Caller.OnCreateChat(
+                    JsonConvert.SerializeObject(new {error = true, message = chatUserElasticResult.Message}));
+                return;
+            }
+
             // Add all the connection ids of the user to the new chat
-            foreach (var connectionId in userElasticResult.Value.ConnectionIds)
-                Groups.Add(connectionId, name);
+            foreach (var connectionId in user.ConnectionIds)
+                Groups.Add(connectionId, chat.Guid);
+
+            Clients.Clients(user.ConnectionIds.ToArray()).OnCreateChatCaller(JsonConvert.SerializeObject(new {}));
         }
 
         public void SendMessage(string text, string userGuid, string chatGuid)

@@ -220,6 +220,37 @@ $(document).ready(function () {
         }
     }
 
+    function createChatViewModel(parent) {
+        var self = this;
+
+        self.chatName = ko.observable("");
+        self.errorChatNameLengthMessageShow = ko.observable(false);
+        self.errorChatNameIncorrectCharactersMessageShow = ko.observable(false);
+
+        self.commitClick = function () {
+            self.errorChatNameLengthMessageShow(false);
+            self.errorChatNameIncorrectCharactersMessageShow(false);
+            self.chatName(self.chatName().trim());
+
+            if (self.chatName().length < 2) {
+                self.errorChatNameLengthMessageShow(true);
+                return;
+            }
+
+            if (/[^a-zA-Z0-9 ]/g.test(self.chatName())) {
+                self.errorChatNameIncorrectCharactersMessageShow(true);
+                return;
+            }
+
+            chat.server.createChat(self.chatName(), parent.currentUser().Guid);
+
+            self.chatName("");
+            self.errorChatNameLengthMessageShow(false);
+            self.errorChatNameIncorrectCharactersMessageShow(false);
+            $("#create-chat-modal").modal("hide");
+        }
+    }
+
     function chatViewModel() {
         var self = this;
 
@@ -239,7 +270,7 @@ $(document).ready(function () {
         self.newChatName = ko.observable();
         self.createNewChat = function() {
             createChat(self, chat.server);
-            newChatName(null);
+            self.newChatName("");
         }
         self.setChatClick = function (chat) {
             self.messages.removeAll();
@@ -321,6 +352,7 @@ $(document).ready(function () {
         });
 
         self.addUserViewModel = ko.observable(new addUserViewModel(self));
+        self.createChatViewModel = ko.observable(new createChatViewModel(self));
 
         self.needMessagesScrollToBottom = ko.observable(false);
         self.messagesCount = 10;
@@ -385,6 +417,9 @@ $(document).ready(function () {
             setErrorMessage(viewModel, result.message);
             return;
         }
+
+        setSuccessMessage(viewModel, "New chat was created successfuly");
+        viewModel.updateChatsClick();
     };
 
     chat.client.onSendMessageCaller = function (json) {
