@@ -14,6 +14,8 @@ namespace Chat.Logic.Elastic.Contracts
 
         ElasticResult<T[]> GetEntitiesFromElasticResponse<T>(ElasticResponse<T> response) where T : class;
 
-        ElasticResult<T[]> GetByGuids<T>(string esType, params string[] guids) where T : class;
+        ElasticResult<T[]> GetEntitiesFromElasticResponseWithScroll<T>(ElasticResponse<T>[] responses) where T : class;
+
+        ElasticResult<T[]> GetAllByGuids<T>(string esType, params string[] guids) where T : class;
     }
 }

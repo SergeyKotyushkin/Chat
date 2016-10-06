@@ -104,14 +104,14 @@ namespace Chat.Logic.Elastic
                 .Index(_elasticRepository.EsIndex)
                 .Type(EsType);
 
-            var response = _elasticRepository.ExecuteSearchRequest(searchDescriptor);
+            var responses = _elasticRepository.ExecuteSearchRequestWithScroll(searchDescriptor);
 
-            return _entityRepository.GetEntitiesFromElasticResponse(response);
+            return _entityRepository.GetEntitiesFromElasticResponseWithScroll(responses);
         }
 
         public ElasticResult<ElasticUser[]> GetAllByGuids(params string[] userGuids)
         {
-            return _entityRepository.GetByGuids<ElasticUser>(EsType, userGuids);
+            return _entityRepository.GetAllByGuids<ElasticUser>(EsType, userGuids);
         }
     }
 }

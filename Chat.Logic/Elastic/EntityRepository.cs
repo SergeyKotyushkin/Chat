@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using Chat.Logic.Elastic.Contracts;
 using Chat.Logic.StructureMap;
 using Chat.Models;
@@ -52,9 +53,9 @@ namespace Chat.Logic.Elastic
         {
             var searchDescriptor = new SearchDescriptor<T>().AllIndices().Index(_elasticRepository.EsIndex).Type(esType);
 
-            var response = _elasticRepository.ExecuteSearchRequest(searchDescriptor);
+            var responses = _elasticRepository.ExecuteSearchRequestWithScroll(searchDescriptor);
 
-            return GetEntitiesFromElasticResponse(response);
+            return GetEntitiesFromElasticResponseWithScroll(responses);
         }
 
         public ElasticResult<T[]> GetEntitiesFromElasticResponse<T>(ElasticResponse<T> response) where T : class
@@ -66,7 +67,16 @@ namespace Chat.Logic.Elastic
                     response.Response.Hits.Select(h => h.Source).Where(s => s != null).ToArray());
         }
 
-        public ElasticResult<T[]> GetByGuids<T>(string esType, params string[] guids) where T : class
+        public ElasticResult<T[]> GetEntitiesFromElasticResponseWithScroll<T>(ElasticResponse<T>[] responses) where T : class
+        {
+            var value = new List<T>();
+            foreach (var response in responses)
+                value.AddRange(GetEntitiesFromElasticResponse(response).Value.Select(s => s));
+
+            return ElasticResult<T[]>.SuccessResult(value.ToArray());
+        }
+
+        public ElasticResult<T[]> GetAllByGuids<T>(string esType, params string[] guids) where T : class
         {
             if (guids.Length == 0)
                 return ElasticResult<T[]>.SuccessResult(new T[] {});

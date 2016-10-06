@@ -31,9 +31,11 @@ namespace Chat.Logic.Elastic
                     .Index(_elasticRepository.EsIndex)
                     .Type(EsType);
 
-            var response = _elasticRepository.ExecuteSearchRequest(searchDescriptor);
+            var responses = _elasticRepository.ExecuteSearchRequestWithScroll(searchDescriptor);
 
-            return _entityRepository.GetEntitiesFromElasticResponse(response);
+            return responses.Any(r => !r.Success)
+                ? ElasticResult<ElasticChatUser[]>.FailResult(responses.First(r => !r.Success).Message)
+                : _entityRepository.GetEntitiesFromElasticResponseWithScroll(responses);
         }
 
         public ElasticResult<ElasticChatUser[]> GetAllByChatGuid(string chatGuid)
@@ -43,9 +45,9 @@ namespace Chat.Logic.Elastic
                 .Index(_elasticRepository.EsIndex)
                 .Type(EsType);
 
-            var response = _elasticRepository.ExecuteSearchRequest(searchDescriptor);
+            var responses = _elasticRepository.ExecuteSearchRequestWithScroll(searchDescriptor);
 
-            return _entityRepository.GetEntitiesFromElasticResponse(response);
+            return _entityRepository.GetEntitiesFromElasticResponseWithScroll(responses);
         }
 
         #endregion

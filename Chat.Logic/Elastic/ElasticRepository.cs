@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using Chat.Logic.Elastic.Contracts;
 using Chat.Logic.Elastic.Models;
 using Chat.Models;
@@ -10,6 +12,9 @@ namespace Chat.Logic.Elastic
     {
         private const string EsUri = "http://localhost:9200";
         private const string EsIndexName = "database";
+
+        private const string ServerErrorMessage = "Server Error";
+
 
         #region Properties
 
@@ -39,7 +44,53 @@ namespace Chat.Logic.Elastic
             }
             catch
             {
-                return ElasticResponse<T>.FailResponse("Server error.");
+                return ElasticResponse<T>.FailResponse(ServerErrorMessage);
+            }
+        }
+
+        public ElasticResponse<T>[] ExecuteSearchRequestWithScroll<T>(SearchDescriptor<T> searchDescriptor) where T : class
+        {
+            var scrollTime = new Time(2000);
+            var searchDescriptorWithScroll = searchDescriptor.From(0).Size(10).Scroll(scrollTime);
+            var results = new List<ElasticResponse<T>>();
+
+            try
+            {
+                var client = GetElasticClient();
+                var response = client.Search<T>(s => searchDescriptorWithScroll);
+                if (!response.ApiCall.Success)
+                    return
+                        new[]
+                        {
+                            ElasticResponse<T>.FailResponse("Request ended with error: " +
+                                                            response.ApiCall.OriginalException.Message)
+                        };
+
+                results.Add(ElasticResponse<T>.SuccessResponse(response));
+
+                do
+                {
+                    var currentResponse = response;
+                    response = client.Scroll<T>(scrollTime, currentResponse.ScrollId);
+                    if (!response.ApiCall.Success)
+                        return
+                            new[]
+                            {
+                                ElasticResponse<T>.FailResponse("Request ended with error: " +
+                                                                response.ApiCall.OriginalException.Message)
+                            };
+
+                    results.Add(ElasticResponse<T>.SuccessResponse(response));
+                } while (response.IsValid && response.Documents.Any());
+
+                return results.ToArray();
+            }
+            catch
+            {
+                return new[]
+                {
+                    ElasticResponse<T>.FailResponse(ServerErrorMessage)
+                };
             }
         }
 

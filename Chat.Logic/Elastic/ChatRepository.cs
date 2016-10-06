@@ -30,7 +30,7 @@ namespace Chat.Logic.Elastic
 
         public ElasticResult<ElasticChat[]> GetByGuids(params string[] chatGuids)
         {
-            return _entityRepository.GetByGuids<ElasticChat>(EsType, chatGuids);
+            return _entityRepository.GetAllByGuids<ElasticChat>(EsType, chatGuids);
         }
 
         #region Private Methods
