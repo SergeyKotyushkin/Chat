@@ -137,35 +137,6 @@ function getMessages(model, callback) {
     );
 }
 
-function createChat(model, server) {
-    visibilityErrorDiv(false);
-    visibilitySuccessDiv(false);
-
-    var name = model.newChatName().trim();
-    if (!name.length) {
-        setErrorMessage(self, "Fill name of the new chat");
-        return;
-    }
-
-    $.post("Chat/CreateChat", { name: name, guid: model.currentUser().Guid }, function (json) {
-        var result = JSON.parse(json);
-
-        if (result.error) {
-            if (result.code === 1) {
-                visibilityChatDiv(false);
-            }
-
-            setErrorMessage(model, result.message);
-            return;
-        }
-
-        server.createChat(name, model.currentUser().Guid);
-        getAllChats(model, function() {
-            spinAllChatsSpinner(false);
-        });
-    });
-}
-
 function updateUsers(model, newUser) {
     var index = arrayFirstIndexOf(model.users(), function (user) { return user.Guid === newUser.Guid; });
     if (index !== -1) {
@@ -267,15 +238,11 @@ $(document).ready(function () {
         self.users = ko.observableArray([]);
         self.messages = ko.observableArray([]);
 
-        self.newChatName = ko.observable();
-        self.createNewChat = function() {
-            createChat(self, chat.server);
-            self.newChatName("");
-        }
         self.setChatClick = function (chat) {
             self.messages.removeAll();
             self.currentChat(chat);
         }
+
         self.closeChatClick = function () {
             self.messages.removeAll();
             self.currentChat(null);
@@ -298,6 +265,7 @@ $(document).ready(function () {
         }
 
         self.messageText = ko.observable(null);
+
         self.sendMessageClick = function () {
             var message = self.messageText().trim();
             if (message.length)

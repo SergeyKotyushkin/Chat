@@ -85,28 +85,6 @@ namespace Chat.Web.Controllers
         }
 
         [HttpPost]
-        public string CreateChat(string name, string guid)
-        {
-            if (string.IsNullOrWhiteSpace(name))
-                return JsonConvert.SerializeObject(new {error = true, code = 0, message = FillChatNameMessage});
-
-            // Check current user
-            var userElasticResult = _userRepository.Get(guid);
-            if (!userElasticResult.Success || userElasticResult.Value == null)
-                return JsonConvert.SerializeObject(new {error = true, code = 1, message = ReloginMessage});
-
-            var chatElasticResult = _chatRepository.Add(name, guid);
-            if (!chatElasticResult.Success)
-                return JsonConvert.SerializeObject(new {error = true, code = 2, message = chatElasticResult.Message});
-
-            var chatUserElasticResult = _chatUserRepository.Add(chatElasticResult.Value.Guid, guid);
-            if (!chatUserElasticResult.Success)
-                return JsonConvert.SerializeObject(new {error = true, code = 2, message = chatUserElasticResult.Message});
-
-            return JsonConvert.SerializeObject(new {error = false});
-        }
-
-        [HttpPost]
         public string GetMessages(string userGuid, string chatGuid, double lastSendTime, int count)
         {
             // Check current user
