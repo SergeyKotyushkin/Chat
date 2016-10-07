@@ -553,7 +553,6 @@ $(document).ready(function () {
         viewModel.chats.push(result);
     }
 
-    $.connection.hub.logging = true;
     setTimeout(function() {
         $.connection.hub.start()
             .done(function() {
