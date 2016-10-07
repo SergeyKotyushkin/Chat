@@ -537,7 +537,7 @@ $(document).ready(function () {
 
     $.connection.hub.logging = true;
     setTimeout(function() {
-        $.connection.hub.start(({ transport: ['webSockets', 'serverSentEvents', 'longPolling'] }))
+        $.connection.hub.start()
             .done(function() {
                 chat.server.login();
                 visibilityLoadingDiv(false);
@@ -547,13 +547,4 @@ $(document).ready(function () {
                 visibilityLoadingDiv(false);
             });
     }, 1000); // Wait 1 second.
-
-    //$.connection.hub.disconnected(function() {
-    //    setTimeout(function() {
-    //        $.connection.hub.start().done(function() {
-    //            chat.server.login();
-    //            visibilityLoadingDiv(false);
-    //        }, 3000); // Re-start connection after 3 seconds
-    //    });
-    //});
 });
