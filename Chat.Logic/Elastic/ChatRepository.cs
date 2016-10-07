@@ -48,7 +48,7 @@ namespace Chat.Logic.Elastic
         private ElasticResult<ElasticChat> CheckChat(ElasticChat chat)
         {
             var searchDescriptor = new SearchDescriptor<ElasticChat>().Query(
-                q => q.Term(t => t.Field(f => f.Name).Value(chat.Name))).Index(_elasticRepository.EsIndex).Type(EsType);
+                q => q.Term(t => t.Field(f => f.Guid).Value(chat.Guid))).Index(_elasticRepository.EsIndex).Type(EsType);
 
             var response = _elasticRepository.ExecuteSearchRequest(searchDescriptor);
 
