@@ -14,6 +14,10 @@ namespace Chat.Web
         private const string ServerErrorMessage = "Server Error";
         private const string UserErrorMessage = "Please relogin to chat. Your personal data is incorrect.";
         private const string ChatErrorMessage = "Invalid chat! Please refresh the page";
+        
+        private const string NewChatUserFormatString = "New User '{0}' has connected to this chat";
+        private const string UserEscapeChatFormatString = "User '{0}' has escaped from this chat";
+        private const string NewChatAdminFormatString = "User '{0}' has got administrative rights in this chat";
 
         private readonly IUserRepository _userRepository;
         private readonly IChatUserRepository _chatUserRepository;
@@ -89,12 +93,12 @@ namespace Chat.Web
             
             #region Remove current connection from all user's chats
 
-            var chatUserElasticResult = _chatUserRepository.GetAllByUserGuid(user.Guid);
-            if (!elasticResult.Success || elasticResult.Value == null)
-                return base.OnDisconnected(stopCalled);
+            //var chatUserElasticResult = _chatUserRepository.GetAllByUserGuid(user.Guid);
+            //if (!elasticResult.Success || elasticResult.Value == null)
+            //    return base.OnDisconnected(stopCalled);
 
-            foreach (var chatUser in chatUserElasticResult.Value)
-                Groups.Remove(Context.ConnectionId, chatUser.ChatGuid);
+            //foreach (var chatUser in chatUserElasticResult.Value)
+            //    Groups.Remove(Context.ConnectionId, chatUser.ChatGuid);
 
             #endregion
 
@@ -225,6 +229,15 @@ namespace Chat.Web
             }
             var user = userElasticResult.Value;
 
+            var chatElasticResult = _chatRepository.Get(chatGuid);
+            if (!chatElasticResult.Success)
+            {
+                Clients.Caller.onAddUsersForAddUsersToChatCaller(
+                    JsonConvert.SerializeObject(new { error = true, message = ChatErrorMessage }));
+                return;
+            }
+            var chat = chatElasticResult.Value;
+
             var usersGuids = JsonConvert.DeserializeObject<string[]>(jsonUsers);
 
             var usersElasticResult = _userRepository.GetAllByGuids(usersGuids);
@@ -258,7 +271,8 @@ namespace Chat.Web
                     return;
                 }
 
-                var messageElasticResult = _messageRepository.AddAdminMessage(chatGuid, user, newUser.UserName);
+                var messageElasticResult = _messageRepository.AddAdminMessage(chatGuid, user,
+                    string.Format(NewChatUserFormatString, newUser.UserName));
                 if (!messageElasticResult.Success)
                 {
                     Clients.Caller.onAddUsersForAddUsersToChatCaller(
@@ -266,15 +280,97 @@ namespace Chat.Web
                     return;
                 }
 
-                var message = JsonConvert.SerializeObject(messageElasticResult.Value);
-                Clients.Group(chatGuid).onSendMessageOthers(message);
+                var message = messageElasticResult.Value;
+                Clients.Group(chatGuid).onSendMessageOthers(JsonConvert.SerializeObject(new {message, chatGuid}));
 
                 foreach (var connectionId in newUser.ConnectionIds)
                     Groups.Add(connectionId, chatGuid);
             }
             
             var newUsersConnectionIds = newUsers.SelectMany(u => u.ConnectionIds).ToArray();
-            Clients.Clients(newUsersConnectionIds).onAddUsersForAddUsersToChatNewUsers();
+            Clients.Clients(newUsersConnectionIds)
+                .onAddUsersForAddUsersToChatNewUsers(JsonConvert.SerializeObject(chat));
+        }
+
+        public void EscapeChat(string chatGuid, string userGuid, int mode, string selectedUserGuid)
+        {
+            var userEr = _userRepository.Get(userGuid);
+            if (!userEr.Success)
+            {
+                Clients.Caller.onEscapeChatCaller(
+                    JsonConvert.SerializeObject(new { error = true, message = UserErrorMessage }));
+                return;
+            }
+            var user = userEr.Value;
+
+            var chatElasticResult = _chatRepository.Get(chatGuid);
+            if (!chatElasticResult.Success)
+            {
+                Clients.Caller.onEscapeChatCaller(
+                    JsonConvert.SerializeObject(new { error = true, message = ChatErrorMessage }));
+                return;
+            }
+            var chat = chatElasticResult.Value;
+
+            var chatUserEr = _chatUserRepository.Remove(chatGuid, userGuid);
+            if (!chatUserEr.Success)
+            {
+                Clients.Caller.onEscapeChatCaller(
+                    JsonConvert.SerializeObject(new {error = true, message = chatUserEr.Message}));
+                return;
+            }
+
+            foreach (var connectionId in user.ConnectionIds)
+                Groups.Remove(connectionId, chatGuid);
+            
+            var messageEr = _messageRepository.AddAdminMessage(chatGuid, user,
+                string.Format(UserEscapeChatFormatString, user.UserName));
+            if (!messageEr.Success)
+            {
+                Clients.Caller.onEscapeChatCaller(
+                    JsonConvert.SerializeObject(new {error = true, message = messageEr.Message}));
+                return;
+            }
+
+            var message = messageEr.Value;
+            Clients.Group(chatGuid).onSendMessageOthers(JsonConvert.SerializeObject(new {message, chatGuid}));
+
+            if (mode == 0)
+            {
+                var selectedUserEr = _userRepository.Get(selectedUserGuid);
+                if (!selectedUserEr.Success)
+                {
+                    Clients.Caller.onEscapeChatCaller(
+                        JsonConvert.SerializeObject(new {error = true, message = selectedUserEr.Message}));
+                    return;
+                }
+
+                chat.AdminGuid = selectedUserGuid;
+
+                // Update chat administrator
+                var chatAdminEr = _chatRepository.Update(chat);
+                if (!chatAdminEr.Success)
+                {
+                    Clients.Caller.onEscapeChatCaller(
+                        JsonConvert.SerializeObject(new {error = true, message = chatAdminEr.Message}));
+                    return;
+                }
+
+                messageEr = _messageRepository.AddAdminMessage(chatGuid, user,
+                    string.Format(NewChatAdminFormatString, selectedUserEr.Value.UserName));
+                if (!messageEr.Success)
+                {
+                    Clients.Caller.onEscapeChatCaller(
+                        JsonConvert.SerializeObject(new { error = true, message = messageEr.Message }));
+                    return;
+                }
+
+                message = messageEr.Value;
+                Clients.Group(chatGuid).onSendMessageOthers(JsonConvert.SerializeObject(new {message, chatGuid}));
+                Clients.Group(chatGuid).onEscapeChatOthers(JsonConvert.SerializeObject(chat));
+            }
+
+            Clients.Caller.onEscapeChatCaller(JsonConvert.SerializeObject(chat));
         }
 
         #endregion

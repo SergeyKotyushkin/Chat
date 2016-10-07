@@ -49,6 +49,16 @@ namespace Chat.Logic.Elastic
                 : ElasticResult<T>.FailResult(response.Message);
         }
 
+        public ElasticResult<bool> Remove<T>(string esType, string guid) where T : class
+        {
+            var documentPath = new DocumentPath<T>(guid).Index(_elasticRepository.EsIndex).Type(esType);
+            var response = _elasticRepository.ExecuteDeleteRequest(documentPath);
+
+            return response.Success
+                ? ElasticResult<bool>.SuccessResult(true)
+                : ElasticResult<bool>.FailResult(response.Message);
+        }
+
         public ElasticResult<T[]> GetAll<T>(string esType) where T : class
         {
             var searchDescriptor = new SearchDescriptor<T>().AllIndices().Index(_elasticRepository.EsIndex).Type(esType);

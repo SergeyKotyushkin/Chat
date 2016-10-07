@@ -13,8 +13,30 @@ namespace Chat.Logic.Elastic
         private readonly IEntityRepository _entityRepository = StructureMapFactory.Resolve<IEntityRepository>();
 
         private const string EsType = "chatuser";
+        private const string ServerErrorMessage = "Server Error";
+        private const string InvalidDataMessage = "Invalid data";
 
         #region Public Methods
+
+        public ElasticResult<ElasticChatUser> Get(string chatGuid, string userGuid)
+        {
+            var searchDescriptor =
+                new SearchDescriptor<ElasticChatUser>().Query(q => q
+                    .Bool(b => b
+                        .Must(
+                            m => m.Term(t => t.Field(f => f.UserGuid).Value(userGuid)),
+                            m => m.Term(t => t.Field(f => f.ChatGuid).Value(chatGuid))
+                        ))
+                    )
+                    .Index(_elasticRepository.EsIndex)
+                    .Type(EsType);
+
+            var response = _elasticRepository.ExecuteSearchRequest(searchDescriptor);
+
+            return response.Success
+                ? _entityRepository.GetEntityIfOnlyOneEntityInElasticResponse(response)
+                : ElasticResult<ElasticChatUser>.FailResult(response.Message);
+        }
 
         public ElasticResult<ElasticChatUser> Add(string chatGuid, string userGuid)
         {
@@ -22,6 +44,19 @@ namespace Chat.Logic.Elastic
             var response = CheckChatUser(chatUser);
 
             return !response.Success ? response : _entityRepository.Add(EsType, chatUser);
+        }
+
+        public ElasticResult<bool> Remove(string guid)
+        {
+            return _entityRepository.Remove<ElasticChatUser>(EsType, guid);
+        }
+
+        public ElasticResult<bool> Remove(string chatGuid, string userGuid)
+        {
+            var chatUserResponse = Get(chatGuid, userGuid);
+            return !chatUserResponse.Success
+                ? ElasticResult<bool>.FailResult(InvalidDataMessage)
+                : _entityRepository.Remove<ElasticChatUser>(EsType, chatUserResponse.Value.Guid);
         }
 
         public ElasticResult<ElasticChatUser[]> GetAllByUserGuid(string userGuid)

@@ -14,5 +14,7 @@ namespace Chat.Logic.Elastic.Contracts
         ElasticIndexResponse ExecuteCreateOrUpdateRequest<T>(T @object, string esType) where T : class, IGuidedEntity;
 
         ElasticMultiGetResponse ExecuteMultiGetRequest(MultiGetDescriptor multiGetDescriptor);
+
+        ElasticDeleteResponse ExecuteDeleteRequest<T>(DocumentPath<T> documentPath) where T : class;
     }
 }

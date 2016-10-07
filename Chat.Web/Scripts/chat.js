@@ -111,9 +111,9 @@ function getMessages(model, callback) {
         {
             userGuid: user.Guid,
             chatGuid: model.currentChat().Guid,
-            lastSendTime: (model.messages() != null && model.messages().length
-                ? new Date(model.messages()[0].SendTime).getTime()
-                : Date.now()),
+            lastSendDateString: (model.messages() != null && model.messages().length
+                ? model.messages()[0].SendTime
+                : ""),
             count: model.messagesCount
         },
         function(json) {
@@ -135,6 +135,22 @@ function getMessages(model, callback) {
             model.isMssagesLoading(false);
         }
     );
+}
+
+function getAllChatUsersForChat(model, chat) {
+    $.post("Chat/GetAllChatUsersForChat", { chatGuid: chat.Guid }, function (json) {
+        var result = JSON.parse(json);
+
+        if (result.error != null && result.error) {
+            setErrorMessage(model, result.message);
+            return;
+        }
+
+        model.chatUsers.removeAll();
+        for (var i = 0; i < result.length; i++) {
+            model.chatUsers.push(result[i]);
+        }
+    });
 }
 
 function updateUsers(model, newUser) {
@@ -188,6 +204,12 @@ $(document).ready(function () {
                 return;
 
             chat.server.addUsersForAddUsersToChat(JSON.stringify(self.selectedUsers()), parent.currentUser().Guid, parent.currentChat().Guid);
+            
+            self.userName("");
+            self.errorUserNameLengthMessageShow(false);
+            self.searchResults.removeAll();
+            self.selectedUsers.removeAll();
+            $("#add-user-modal").modal("hide");
         }
     }
 
@@ -227,25 +249,38 @@ $(document).ready(function () {
 
         self.currentChat = ko.observable(null);
         self.currentUser = ko.observable(null);
+        
+        self.hasErrorMessage = ko.observable(false);
+        self.hasSuccessMessage = ko.observable(false);
+        
+        self.errorMessage = ko.observable(null);
+        self.successMessage = ko.observable(null);
+
+        self.messageText = ko.observable(null);
+
+        self.selectedChatUser = ko.observable(null);
+
+        self.needMessagesScrollToBottom = ko.observable(false);
+        self.messagesCount = 10;
+        self.isMssagesLoading = ko.observable(false);
+        self.allMessagesLoaded = ko.observable(false);
+
+        self.chats = ko.observableArray([]);
+        self.users = ko.observableArray([]);
+        self.messages = ko.observableArray([]);
+        self.chatUsers = ko.observableArray([]);
+
+        self.addUserViewModel = ko.observable(new addUserViewModel(self));
+        self.createChatViewModel = ko.observable(new createChatViewModel(self));
 
         self.closeMessageClick = function (item, event) {
             var alertContainer = $(event.target).closest(".alert-div");
             $(alertContainer).toggle();
         }
 
-        self.hasErrorMessage = ko.observable(false);
-        self.hasSuccessMessage = ko.observable(false);
-
-        self.errorMessage = ko.observable(null);
-        self.successMessage = ko.observable(null);
-
-        self.chats = ko.observableArray([]);
-        self.users = ko.observableArray([]);
-        self.messages = ko.observableArray([]);
-
-        self.setChatClick = function (chat) {
+        self.setChatClick = function (currentChat) {
             self.messages.removeAll();
-            self.currentChat(chat);
+            self.currentChat(currentChat);
         }
 
         self.closeChatClick = function () {
@@ -269,14 +304,48 @@ $(document).ready(function () {
             });
         }
 
-        self.messageText = ko.observable(null);
-
         self.sendMessageClick = function () {
             var message = self.messageText().trim();
             if (message.length)
                 chat.server.sendMessage(message, self.currentUser().Guid, self.currentChat().Guid);
 
             self.messageText(null);
+        }
+
+        self.onEscapeChatModalOpenClick = function () {
+            if (!self.currentChat())
+                return;
+
+            self.chatUsers.removeAll();
+            getAllChatUsersForChat(self, self.currentChat());
+        }
+
+        self.escapeChatYesClick = function() {
+            if (!self.currentChat() || (!self.selectedChatUser() && self.chatUsers().length !== 1 && self.currentChat().AdminGuid === self.currentUser().Guid)) {
+                self.selectedChatUser(null);
+                self.chatUsers.removeAll();
+                $("#escape-chat-modal").modal("hide");
+                return;
+            }
+
+            var mode = 2;
+            if (self.selectedChatUser()) {
+                mode = 0;
+            } else if (self.chatUsers().length === 1) {
+                mode = 1;
+            }
+
+            chat.server.escapeChat(self.currentChat().Guid, self.currentUser().Guid, mode, self.selectedChatUser() ? self.selectedChatUser().Guid : "");
+
+            self.selectedChatUser(null);
+            self.chatUsers.removeAll();
+            $("#escape-chat-modal").modal("hide");
+        }
+
+        self.escapeChatNoClick = function() {
+            self.selectedChatUser(null);
+            self.chatUsers.removeAll();
+            $("#escape-chat-modal").modal("hide");
         }
 
         self.newMessageTextKeyUp = function (d, e) {
@@ -323,15 +392,6 @@ $(document).ready(function () {
                 self.needMessagesScrollToBottom(false);
             });
         });
-
-        self.addUserViewModel = ko.observable(new addUserViewModel(self));
-        self.createChatViewModel = ko.observable(new createChatViewModel(self));
-
-        self.needMessagesScrollToBottom = ko.observable(false);
-        self.messagesCount = 10;
-
-        self.isMssagesLoading = ko.observable(false);
-        self.allMessagesLoaded = ko.observable(false);
     }
 
     var viewModel = new chatViewModel();
@@ -355,14 +415,14 @@ $(document).ready(function () {
         setTimeout(function() {
             getAllUsers(viewModel, function() {
                 spinAllUsersSpinner(false);
-            });
 
-            getAllChats(viewModel, function () {
-                if (viewModel.chats().length === 1) {
-                    viewModel.currentChat(viewModel.chats()[0]);
-                }
+                getAllChats(viewModel, function() {
+                    if (viewModel.chats().length === 1) {
+                        viewModel.currentChat(viewModel.chats()[0]);
+                    }
 
-                spinAllChatsSpinner(false);
+                    spinAllChatsSpinner(false);
+                });
             });
         }, 1000);
     };
@@ -397,6 +457,31 @@ $(document).ready(function () {
             return chat1.Name.localeCompare(chat2.Name);
         });
     };
+
+    chat.client.onEscapeChatCaller = function (json) {
+        var result = JSON.parse(json);
+
+        if (result.error != null && result.error) {
+            setErrorMessage(viewModel, result.message);
+            return;
+        }
+
+        viewModel.chats.remove(function(currentChat) { return currentChat.Guid === result.Guid });
+        viewModel.currentChat(null);
+    }
+
+    chat.client.onEscapeChatOthers = function (json) {
+        var result = JSON.parse(json);
+
+        if (result.error != null && result.error) {
+            setErrorMessage(viewModel, result.message);
+            return;
+        }
+
+        var chatForUpdate = ko.utils.arrayFirst(viewModel.chats(), function (currentChat) { return currentChat.Guid === result.Guid });
+        viewModel.chats.replace(chatForUpdate, result);
+        viewModel.currentChat(result);
+    }
 
     chat.client.onSendMessageCaller = function (json) {
         var result = JSON.parse(json);
@@ -442,20 +527,17 @@ $(document).ready(function () {
             setErrorMessage(viewModel, result.message);
             return;
         }
-
-        viewModel.userName("");
-        viewModel.errorUserNameLengthMessageShow(false);
-        viewModel.searchResults.removeAll();
-        viewModel.selectedUsers.removeAll();
-        $("#add-user-modal").modal("hide");
     }
 
-    chat.client.onAddUsersForAddUsersToChatNewUsers = function () {
-        viewModel.updateChatsClick();
+    chat.client.onAddUsersForAddUsersToChatNewUsers = function (json) {
+        var result = JSON.parse(json);
+
+        viewModel.chats.push(result);
     }
 
+    $.connection.hub.logging = true;
     setTimeout(function() {
-        $.connection.hub.start()
+        $.connection.hub.start(({ transport: ['webSockets', 'serverSentEvents', 'longPolling'] }))
             .done(function() {
                 chat.server.login();
                 visibilityLoadingDiv(false);
@@ -465,4 +547,13 @@ $(document).ready(function () {
                 visibilityLoadingDiv(false);
             });
     }, 1000); // Wait 1 second.
+
+    //$.connection.hub.disconnected(function() {
+    //    setTimeout(function() {
+    //        $.connection.hub.start().done(function() {
+    //            chat.server.login();
+    //            visibilityLoadingDiv(false);
+    //        }, 3000); // Re-start connection after 3 seconds
+    //    });
+    //});
 });

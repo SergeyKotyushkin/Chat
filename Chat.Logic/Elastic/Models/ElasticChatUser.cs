@@ -3,6 +3,7 @@ using Nest;
 
 namespace Chat.Logic.Elastic.Models
 {
+    [ElasticsearchType]
     public class ElasticChatUser : IGuidedEntity
     {
         public ElasticChatUser(string chatGuid, string userGuid)

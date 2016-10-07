@@ -10,6 +10,8 @@ namespace Chat.Logic.Elastic.Contracts
 
         ElasticResult<T> Add<T>(string esType, T @object) where T : class, IGuidedEntity;
 
+        ElasticResult<bool> Remove<T>(string esType, string guid) where T : class;
+
         ElasticResult<T[]> GetAll<T>(string esType) where T : class;
 
         ElasticResult<T[]> GetEntitiesFromElasticResponse<T>(ElasticResponse<T> response) where T : class;

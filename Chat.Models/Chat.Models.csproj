@@ -51,6 +51,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ElasticDeleteResponse.cs" />
     <Compile Include="ElasticIndexResponse.cs" />
     <Compile Include="ElasticMultiGetResponse.cs" />
     <Compile Include="ElasticResponse.cs" />

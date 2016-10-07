@@ -85,19 +85,36 @@ namespace Chat.Web.Controllers
         }
 
         [HttpPost]
-        public string GetMessages(string userGuid, string chatGuid, double lastSendTime, int count)
+        public string GetMessages(string userGuid, string chatGuid, string lastSendDateString, int count)
         {
             // Check current user
             var userElasticResult = _userRepository.Get(userGuid);
             if (!userElasticResult.Success || userElasticResult.Value == null)
                 return JsonConvert.SerializeObject(new { error = true, message = ReloginMessage });
 
-            var date = new DateTime(1970, 1, 1, 0, 0, 0, 0).AddMilliseconds(lastSendTime);
-            var messageslasticResult = _messageRepository.GetAllByChatGuid(chatGuid, date, count);
+            DateTime lastSendDate;
+            if (string.IsNullOrEmpty(lastSendDateString) || !DateTime.TryParse(lastSendDateString, out lastSendDate))
+                lastSendDate = DateTime.Now;
+            var messageslasticResult = _messageRepository.GetAllByChatGuid(chatGuid, lastSendDate, count);
 
             return !messageslasticResult.Success
                 ? JsonConvert.SerializeObject(new List<ElasticChat>())
                 : JsonConvert.SerializeObject(messageslasticResult.Value.OrderByDescending(u => u.SendTime));
+        }
+
+        [HttpPost]
+        public string GetAllChatUsersForChat(string chatGuid)
+        {
+            var chatUserlasticResult = _chatUserRepository.GetAllByChatGuid(chatGuid);
+            if (!chatUserlasticResult.Success)
+                return JsonConvert.SerializeObject(new List<ElasticChat>());
+
+            var userElasticResult =
+                _userRepository.GetAllByGuids(chatUserlasticResult.Value.Select(c => c.UserGuid).ToArray());
+            if (!userElasticResult.Success)
+                return JsonConvert.SerializeObject(new List<ElasticChat>());
+
+            return JsonConvert.SerializeObject(userElasticResult.Value);
         }
 
         #endregion

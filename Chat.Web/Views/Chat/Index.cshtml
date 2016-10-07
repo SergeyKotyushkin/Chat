@@ -59,9 +59,12 @@
                                 <i class="fa fa-cog"></i>
                             </div>
                             <ul class="dropdown-menu">
-                                <li><a class="pointered" data-toggle="modal" data-target="#add-user-modal">Add User</a></li>
-                                <li><a href="#">CSS</a></li>
-                                <li><a href="#">JavaScript</a></li>
+                                <li>
+                                    <a class="pointered" data-toggle="modal" data-target="#add-user-modal">Add User</a>
+                                </li>
+                                <li>
+                                    <a class="pointered" data-toggle="modal" data-target="#escape-chat-modal" data-bind="click: onEscapeChatModalOpenClick">Escape this chat</a>
+                                </li>
                             </ul>
                         </div>
 
@@ -128,7 +131,7 @@
                 </div>
                 <div id="chats-collapse" class="panel-collapse collapse in">
                     <div class="panel-body">
-                        <div class="div-with-vertical-scroll" data-bind="foreach: chats">
+                        <div class="div-with-vertical-scroll" data-bind="foreach: chats.sort(function (chat1, chat2) { return chat1.Name.localeCompare(chat2.Name); })">
                             <div class="row">
                                 <div class="col-xs-12">
                                     <a class="pointered" data-bind="text: Name, click: $root.setChatClick"></a>
@@ -252,7 +255,6 @@
     </div>
 </div>
 
-
 <div id="create-chat-modal" class="modal fade" role="dialog">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -297,6 +299,53 @@
         </div>
     </div>
 </div>
+
+<div data-bind="if: currentChat()">
+    <div id="escape-chat-modal" class="modal fade" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title" data-bind="html: 'Escaping from \'' + currentChat().Name + '\' chat'"></h4>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-xs-12">
+                            <div class="row" data-bind="if: currentChat().AdminGuid === currentUser().Guid && chatUsers().length !== 1">
+                                <div class="col-xs-12">
+                                    <p>Before escape from this chat please transfer your administrative rights to another chat user</p>
+                                    <div class="form-group">
+                                        <select data-bind="options: ko.utils.arrayFilter(chatUsers(), function(chatUser) { return chatUser.Guid !== currentUser().Guid}), optionsText: 'UserName', value: selectedChatUser, optionsCaption: 'Choose someone'"></select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row" data-bind="if: selectedChatUser() || chatUsers().length === 1 || currentUser().Guid !== currentChat().AdminGuid">
+                                <div class="col-xs-12">
+                                    <div data-bind="if: selectedChatUser()">
+                                        <span data-bind="html: 'Are you sure to transfer administrative rights to \'' + selectedChatUser().UserName + '\' and escape this chat?'"></span>
+                                    </div>
+                                    <div data-bind="if: !selectedChatUser()">
+                                        <span>Are you sure to escape this chat?</span>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-xs-3">
+                                            <div class="btn btn-primary" data-bind="click: escapeChatYesClick">Yes</div>
+                                        </div>
+                                        <div class="col-xs-3">
+                                            <div class="btn btn-default" data-bind="click: escapeChatNoClick">No</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div></div>
 
 
 <div id="loading-image" class="hidden">

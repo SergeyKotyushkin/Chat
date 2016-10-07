@@ -14,6 +14,7 @@ namespace Chat.Logic.Elastic
         private const string EsIndexName = "database";
 
         private const string ServerErrorMessage = "Server Error";
+        private const string TimeoutMessage = "The Request's Timeout was exceeded";
 
 
         #region Properties
@@ -35,11 +36,10 @@ namespace Chat.Logic.Elastic
                 var response = client.Search<T>(s => searchDescriptor);
 
                 if (response.TimedOut)
-                    return ElasticResponse<T>.FailResponse("The Request's Timeout was exceeded");
+                    return ElasticResponse<T>.FailResponse(TimeoutMessage);
 
                 return !response.ApiCall.Success
-                    ? ElasticResponse<T>.FailResponse("Request ended with error: " +
-                                                      response.ApiCall.OriginalException.Message)
+                    ? ElasticResponse<T>.FailResponse(response.ApiCall.OriginalException.Message)
                     : ElasticResponse<T>.SuccessResponse(response);
             }
             catch
@@ -59,12 +59,7 @@ namespace Chat.Logic.Elastic
                 var client = GetElasticClient();
                 var response = client.Search<T>(s => searchDescriptorWithScroll);
                 if (!response.ApiCall.Success)
-                    return
-                        new[]
-                        {
-                            ElasticResponse<T>.FailResponse("Request ended with error: " +
-                                                            response.ApiCall.OriginalException.Message)
-                        };
+                    return new[] {ElasticResponse<T>.FailResponse(response.ApiCall.OriginalException.Message)};
 
                 results.Add(ElasticResponse<T>.SuccessResponse(response));
 
@@ -73,12 +68,7 @@ namespace Chat.Logic.Elastic
                     var currentResponse = response;
                     response = client.Scroll<T>(scrollTime, currentResponse.ScrollId);
                     if (!response.ApiCall.Success)
-                        return
-                            new[]
-                            {
-                                ElasticResponse<T>.FailResponse("Request ended with error: " +
-                                                                response.ApiCall.OriginalException.Message)
-                            };
+                        return new[] {ElasticResponse<T>.FailResponse(response.ApiCall.OriginalException.Message)};
 
                     results.Add(ElasticResponse<T>.SuccessResponse(response));
                 } while (response.IsValid && response.Documents.Any());
@@ -87,10 +77,7 @@ namespace Chat.Logic.Elastic
             }
             catch
             {
-                return new[]
-                {
-                    ElasticResponse<T>.FailResponse(ServerErrorMessage)
-                };
+                return new[] {ElasticResponse<T>.FailResponse(ServerErrorMessage)};
             }
         }
 
@@ -103,12 +90,11 @@ namespace Chat.Logic.Elastic
 
                 return response.ApiCall.Success
                     ? ElasticIndexResponse.SuccessResponse(response)
-                    : ElasticIndexResponse.FailResponse("Request ended with error. " +
-                                                        response.ApiCall.OriginalException.Message);
+                    : ElasticIndexResponse.FailResponse(response.ApiCall.OriginalException.Message);
             }
             catch
             {
-                return ElasticIndexResponse.FailResponse("Server error.");
+                return ElasticIndexResponse.FailResponse(ServerErrorMessage);
             }
         }
 
@@ -121,12 +107,28 @@ namespace Chat.Logic.Elastic
 
                 return response.ApiCall.Success
                     ? ElasticMultiGetResponse.SuccessResponse(response)
-                    : ElasticMultiGetResponse.FailResponse("Request ended with error. " +
-                                                        response.ApiCall.OriginalException.Message);
+                    : ElasticMultiGetResponse.FailResponse(response.ApiCall.OriginalException.Message);
             }
             catch
             {
-                return ElasticMultiGetResponse.FailResponse("Server error");
+                return ElasticMultiGetResponse.FailResponse(ServerErrorMessage);
+            }
+        }
+
+        public ElasticDeleteResponse ExecuteDeleteRequest<T>(DocumentPath<T> documentPath) where T : class
+        {
+            try
+            {
+                var client = GetElasticClient();
+                var response = client.Delete(documentPath);
+
+                return response.ApiCall.Success
+                    ? ElasticDeleteResponse.SuccessResponse(response)
+                    : ElasticDeleteResponse.FailResponse(response.ApiCall.OriginalException.Message);
+            }
+            catch
+            {
+                return ElasticDeleteResponse.FailResponse(ServerErrorMessage);
             }
         }
 
@@ -152,14 +154,14 @@ namespace Chat.Logic.Elastic
                                 .Map<ElasticChat>(map => map.AutoMap())
                                 .Map<ElasticChatUser>(map => map.AutoMap())
                                 .Map<ElasticMessage>(map => map.AutoMap())));
-
+                
                 return response.ApiCall.Success
                     ? ElasticResult<bool?>.SuccessResult(true)
                     : ElasticResult<bool?>.FailResult(response.ApiCall.ServerError.Error.ToString());
             }
             catch
             {
-                return ElasticResult<bool?>.FailResult("Server error.");
+                return ElasticResult<bool?>.FailResult(ServerErrorMessage);
             }
         }
 

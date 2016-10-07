@@ -4,21 +4,20 @@ using Newtonsoft.Json;
 
 namespace Chat.Logic.Elastic.Models
 {
+    [ElasticsearchType]
     public class ElasticChat : IGuidedEntity
     {
-        public ElasticChat(string name, string creatorGuid)
+        [JsonConstructor]
+        public ElasticChat()
+        {
+        }
+
+        public ElasticChat(string name, string creatorGuid, string adminGuid)
         {
             Guid = System.Guid.NewGuid().ToString();
             Name = name;
             CreatorGuid = creatorGuid;
-        }
-
-        [JsonConstructor]
-        public ElasticChat(string guid, string name, string creatorGuid)
-        {
-            Guid = guid;
-            Name = name;
-            CreatorGuid = creatorGuid;
+            AdminGuid = adminGuid;
         }
 
         [String(Index = FieldIndexOption.NotAnalyzed)]
@@ -29,5 +28,8 @@ namespace Chat.Logic.Elastic.Models
 
         [String(Index = FieldIndexOption.NotAnalyzed)]
         public string CreatorGuid { get; set; }
+
+        [String(Index = FieldIndexOption.NotAnalyzed)]
+        public string AdminGuid { get; set; }
     }
 }

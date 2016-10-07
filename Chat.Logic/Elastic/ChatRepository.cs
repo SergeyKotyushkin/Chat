@@ -17,7 +17,7 @@ namespace Chat.Logic.Elastic
 
         public ElasticResult<ElasticChat> Add(string name, string creatorGuid)
         {
-            var chat = new ElasticChat(name, creatorGuid);
+            var chat = new ElasticChat(name, creatorGuid, creatorGuid);
             var response = CheckChat(chat);
 
             return !response.Success ? response : _entityRepository.Add(EsType, chat);
@@ -26,6 +26,15 @@ namespace Chat.Logic.Elastic
         public ElasticResult<ElasticChat> Get(string chatGuid)
         {
             return _entityRepository.Get<ElasticChat>(EsType, chatGuid);
+        }
+
+        public ElasticResult<ElasticChat> Update(ElasticChat chat)
+        {
+            var response = _elasticRepository.ExecuteCreateOrUpdateRequest(chat, EsType);
+
+            return response.Success
+                ? ElasticResult<ElasticChat>.SuccessResult(chat)
+                : ElasticResult<ElasticChat>.FailResult(response.Message);
         }
 
         public ElasticResult<ElasticChat[]> GetByGuids(params string[] chatGuids)

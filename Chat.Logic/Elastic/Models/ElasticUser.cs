@@ -5,6 +5,7 @@ using Nest;
 
 namespace Chat.Logic.Elastic.Models
 {
+    [ElasticsearchType]
     public class ElasticUser : IGuidedEntity
     {
         public ElasticUser(string login, string password)
