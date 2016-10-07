@@ -269,6 +269,22 @@ $(document).ready(function () {
         self.users = ko.observableArray([]);
         self.messages = ko.observableArray([]);
         self.chatUsers = ko.observableArray([]);
+        self.chatUserOutputs = ko.computed(function () {
+
+            function findUser(user) {
+                return user.Guid === this.Guid;
+            }
+
+            var chatRoomUsers = self.users().filter(function (user) {
+                return  self.chatUsers().find(findUser, user);
+            });
+
+            return chatRoomUsers.sort(function (user1, user2) {
+                if (user1.IsOnline === user2.IsOnline)
+                    return user1.UserName.localeCompare(user2.UserName);
+                else return user1.IsOnline < user2.IsOnline;
+            });
+        });
 
         self.addUserViewModel = ko.observable(new addUserViewModel(self));
         self.createChatViewModel = ko.observable(new createChatViewModel(self));
@@ -390,6 +406,8 @@ $(document).ready(function () {
             getMessages(self, function () {
                 $("#chat-messages").animate({ scrollTop: $("#chat-messages")[0].scrollHeight }, "slow");
                 self.needMessagesScrollToBottom(false);
+
+                getAllChatUsersForChat(self, newValue);
             });
         });
     }

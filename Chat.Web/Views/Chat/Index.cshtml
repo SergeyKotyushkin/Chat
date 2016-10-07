@@ -115,6 +115,29 @@
                     </div>
                 </div>
             </div>
+            <div data-bind="if: currentChat() && chatUserOutputs() && chatUserOutputs().length">
+                <div id="chat-room-users" class="panel panel-default">
+                    <div class="row">
+                        <div class="col-xs-12 text-center">
+                            <h4>Chat Room Users</h4>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-xs-12" data-bind="foreach: chatUserOutputs">
+                            <div data-bind="if: IsOnline">
+                                <div class="chat-room-user pull-left online">
+                                    <span data-bind="html: UserName"></span>
+                                </div>
+                            </div>
+                            <div data-bind="if: !IsOnline">
+                                <div class="chat-room-user pull-left offline">
+                                    <span data-bind="html: UserName"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
         <div class="col-md-4">
             <div id="chats-panel" class="panel panel-default">
